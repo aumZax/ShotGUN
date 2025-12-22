@@ -91,3 +91,13 @@ button:focus-visible {
 .bar-gray {
   background-color: #3a3939; /* zinc-900 */
 }
+
+
+/* ===== SPACE BACKGROUND ===== */
+
+.space {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(ellipse at bottom, #0b0d2a 0%, #000 100%);
+}

@@ -1,34 +1,30 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Outlet, useLocation } from "react-router-dom";
 import Home from "./Pages/Home";
+import Login from "./Pages/Login";
+import Register from "./Pages/Register";
+import Project_Detail from "./Pages/Project/Project_Detail";
 
-export default function App() {
-  
+// ░░ Layout สำหรับหน้าที่มี Header ░░
+function MainLayout() {
   return (
     <div className="min-h-screen">
-
-      {/* ░░ TOP NAV BAR - Fixed ติดด้านบน ░░ */}
-      <header className="fixed top-0 left-0 right-0 w-full h-12 leading-tight shadow-md flex items-center justify-between px-2 z-50 bar-dark">
-
+      {/* ░░ TOP NAV BAR ░░ */}
+      <header className="fixed  w-full h-12 leading-tight shadow-md flex items-center justify-between px-2 z-50 bar-dark">
         {/* LEFT — เมนูต่างๆ */}
         <div className="flex items-center gap-6 text-sm">
-          {/* โลโก้ */}
-          <Link to="/">
+          <Link to="/Home">
             <img
               src="/icon/color.png"
               className="w-6 h-6 rounded-md object-cover"
               alt="logo"
             />
           </Link>
-
-          <Link className="hover:text-blue-600" to="/">Inbox</Link>
-          <Link className="hover:text-blue-600" to="/tasks">My Tasks</Link>
+          <Link className="hover:text-blue-600" to="/">Login</Link>
+          <Link className="hover:text-blue-600" to="/Task">My Task</Link>
           <Link className="hover:text-blue-600" to="/media">Media</Link>
 
-          {/* Dropdown แบบง่าย */}
           <div className="relative group">
-            <span className="hover:text-blue-600 cursor-pointer">
-              Projects ▼
-            </span>
+            <span className="hover:text-blue-600 cursor-pointer">Projects ▼</span>
             <div className="absolute hidden group-hover:block bg-white shadow rounded mt-1 w-32 z-10">
               <Link to="/p1" className="block px-3 py-2 hover:bg-gray-100">Project 1</Link>
               <Link to="/p2" className="block px-3 py-2 hover:bg-gray-100">Project 2</Link>
@@ -36,9 +32,7 @@ export default function App() {
           </div>
 
           <div className="relative group">
-            <span className="hover:text-blue-600 cursor-pointer">
-              All Pages ▼
-            </span>
+            <span className="hover:text-blue-600 cursor-pointer">All Pages ▼</span>
             <div className="absolute hidden group-hover:block bg-white shadow rounded mt-1 w-32 z-10">
               <Link to="/page1" className="block px-3 py-2 hover:bg-gray-100">Page 1</Link>
               <Link to="/page2" className="block px-3 py-2 hover:bg-gray-100">Page 2</Link>
@@ -51,9 +45,7 @@ export default function App() {
 
         {/* RIGHT — Search, Icons, Profile */}
         <div className="flex items-center gap-4">
-
           <div className="text-xl cursor-pointer">🔍</div>
-          {/* ช่องค้นหา */}
           <div className="relative">
             <input
               type="text"
@@ -61,33 +53,57 @@ export default function App() {
               className="border rounded-full pl-2 pr-3 py-1 text-sm w-48 focus:outline-blue-400"
             />
           </div>
-
-          {/* Icon: แจ้งเตือน */}
           <div className="text-xl cursor-pointer">🎁</div>
-
-          {/* Icon: เพิ่ม */}
           <div className="text-xl cursor-pointer">➕</div>
-
-          {/* Dark mode toggle */}
           <div className="text-xl cursor-pointer">🌙</div>
-
-          {/* Profile Avatar */}
           <img
             src="/icon/black-dog.png"
             className="w-8 h-8 rounded-full object-cover"
             alt="profile"
           />
         </div>
-
       </header>
 
-      {/* ░░ ROUTES - เพิ่ม padding-top เพื่อไม่ให้ content ถูกบัง ░░ */}
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
+      {/* Content ของแต่ละหน้า - เพิ่ม padding-top */}
+      <main className="">
+        <Outlet />
       </main>
-
     </div>
+  );
+}
+
+// ░░ Layout สำหรับหน้า Auth (ไม่มี Header) ░░
+function AuthLayout() {
+  return (
+    <div className="min-h-screen">
+      <Outlet />
+    </div>
+  );
+}
+
+// ░░ Main App ░░
+export default function App() {
+  return (
+    <Routes>
+      {/* Routes ที่ไม่มี Header */}
+      <Route element={<AuthLayout />}>
+      
+        <Route path="/" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+      </Route>
+
+      {/* Routes ที่มี Header */}
+      <Route element={<MainLayout />}>
+        <Route path="/Home" element={<Home />} />
+
+         {/*<Route path="/" element={<Login />} />อย่าลืมเอาออก */}
+
+        <Route path="/Project_Detail" element={<Project_Detail/>} />
+        <Route path="/media" element={<div>Media Page</div>} />
+        <Route path="/people" element={<div>People Page</div>} />
+        {/* เพิ่ม route อื่นๆ ตามต้องการ */}
+      </Route>
+    </Routes>
   );
 }
