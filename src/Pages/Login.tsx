@@ -1,8 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import ENDPOINTS from "../config";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -23,11 +25,44 @@ export default function Login() {
                 password,
             });
 
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("authUser", JSON.stringify(res.data.user));
+            console.log("=== LOGIN DEBUG ===");
+            console.log("Full response:", res.data);
+            console.log("==================");
 
-            window.location.href = "/";
-        } catch {
+            // กรณี Backend ส่งมาแบบ { token, user }
+            if (res.data.token && res.data.user) {
+                localStorage.setItem("token", res.data.token);
+                localStorage.setItem("authUser", JSON.stringify(res.data.user));
+                console.log("✓ Saved (format 1): token + user object");
+            } 
+            // กรณี Backend ส่งมาแบบแยก field (uid, username, email, role)
+            else if (res.data.uid || res.data.username) {
+                const userObject = {
+                    uid: res.data.uid,
+                    username: res.data.username,
+                    email: res.data.email,
+                    name: res.data.name || res.data.username,
+                    role: res.data.role,
+                };
+                localStorage.setItem("token", "dummy-token"); // ถ้าไม่มี token
+                localStorage.setItem("authUser", JSON.stringify(userObject));
+                console.log("✓ Saved (format 2): converted to user object", userObject);
+            } else {
+                console.warn("⚠ Unknown response format");
+            }
+
+            // ยืนยันว่าบันทึกสำเร็จ
+            console.log("=== VERIFY SAVED DATA ===");
+            console.log("Token from storage:", localStorage.getItem("token"));
+            console.log("AuthUser from storage:", localStorage.getItem("authUser"));
+            console.log("=========================");
+
+            // รอ 100ms ให้แน่ใจว่า localStorage บันทึกเสร็จ
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            navigate("/Home");
+        } catch (err) {
+            console.error("Login error:", err);
             setError("Invalid email or password");
         } finally {
             setLoading(false);
@@ -44,28 +79,20 @@ export default function Login() {
         fontFamily: "Arial, sans-serif",
     };
 
-
-
-
     const cardStyle: React.CSSProperties = {
         background: "rgba(10, 10, 30, 0.30)",
         backdropFilter: "blur(14px)",
-
-        WebkitBackdropFilter: "blur(18px) saturate(140%)", // Safari
+        WebkitBackdropFilter: "blur(18px) saturate(140%)",
         padding: "26px",
         borderRadius: "18px",
         width: "320px",
         textAlign: "center",
-
-        border: "1px solid rgba(255,255,255,0.15)", // ขอบกระจก
+        border: "1px solid rgba(255,255,255,0.15)",
         boxShadow: `
-    0 0 60px rgba(120, 100, 255, 0.35),
-    0 25px 70px rgba(0,0,0,0.8)
-  `,
+            0 0 60px rgba(120, 100, 255, 0.35),
+            0 25px 70px rgba(0,0,0,0.8)
+        `,
     };
-
-
-
 
     const titleStyle: React.CSSProperties = {
         color: "#4f6bff",
@@ -83,6 +110,7 @@ export default function Login() {
         color: "white",
         fontSize: "16px",
         outline: "none",
+        width: "100%",
     };
 
     const buttonStyle: React.CSSProperties = {
@@ -92,6 +120,8 @@ export default function Login() {
         backgroundColor: "#0278f7",
         fontWeight: 700,
         cursor: "pointer",
+        width: "100%",
+        color: "white",
     };
 
     const errorStyle: React.CSSProperties = {
@@ -171,6 +201,7 @@ export default function Login() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         style={inputStyle}
+                        onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     />
 
                     <button onClick={handleLogin} disabled={loading} style={buttonStyle}>
@@ -181,7 +212,7 @@ export default function Login() {
                         Don't have an account?{" "}
                         <span
                             style={{ color: "#667eea", cursor: "pointer" }}
-                            onClick={() => (window.location.href = "/register")}
+                            onClick={() => navigate("/register")}
                         >
                             sign up
                         </span>
@@ -190,5 +221,4 @@ export default function Login() {
             </div>
         </>
     );
-
 }

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import ENDPOINTS from "../config";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState<string>("");
     const [username, setUsername] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -39,7 +41,7 @@ export default function Register() {
             });
 
             alert("Register success! Please login.");
-            window.location.href = "/login";
+            window.location.href = "/";
         } catch {
             setError("Registration failed");
         } finally {
@@ -238,7 +240,7 @@ export default function Register() {
           Already have an account?{" "}
           <span
             style={{ color: "#667eea", cursor: "pointer" }}
-            onClick={() => (window.location.href = "/")}
+            onClick={() => (navigate("/"))}
           >
             signin
           </span>

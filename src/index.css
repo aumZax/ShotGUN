@@ -35,7 +35,7 @@ a {
   text-decoration: inherit;
 }
 a:hover {
-  color: #2f38e8;
+  color: #2484e5;
 }
 
 /* body {
@@ -85,13 +85,21 @@ button:focus-visible {
 
 
 .bar-dark {
-  background-color: #201f1f; /* zinc-900 */
+  background-color: #232222; /* zinc-900 */
 }
 
 .bar-gray {
   background-color: #3a3939; /* zinc-900 */
 }
 
+.bar-darkV2 {
+  background-color: #1b1a1a; /* zinc-900 */
+}
+
+
+.dropDownLogOut {
+  background-color: #650a0a; /* zinc-900 */
+}
 
 /* ===== SPACE BACKGROUND ===== */
 
