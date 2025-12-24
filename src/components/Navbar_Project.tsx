@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface NavbarProjectProps {
     activeTab?: string;
@@ -8,8 +8,12 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
     const [projectName, setProjectName] = useState('Loading...');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showOtherDropdown, setShowOtherDropdown] = useState(false);
+    const [showProjectPagesDropdown, setShowProjectPagesDropdown] = useState(false);
+    const otherDropdownRef = useRef<HTMLDivElement>(null);
+    const projectPagesDropdownRef = useRef<HTMLDivElement>(null);
 
-     useEffect(() => {
+    useEffect(() => {
         const loadProjectFromStorage = () => {
             try {
                 setLoading(true);
@@ -32,22 +36,18 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
 
                 let name = null;
 
-                // Format 1: projectName ที่ root level (ตรงๆ)
                 if (projectData.projectName) {
                     name = projectData.projectName;
                     console.log('📦 Format 1 - Found project name at root:', name);
                 }
-                // Format 2: projectInfo.project.projectName
                 else if (projectData.projectInfo?.project?.projectName) {
                     name = projectData.projectInfo.project.projectName;
                     console.log('📦 Format 2 - Found project name in projectInfo.project:', name);
                 }
-                // Format 3: projectInfo.projects[0].projectName
                 else if (projectData.projectInfo?.projects?.[0]?.projectName) {
                     name = projectData.projectInfo.projects[0].projectName;
                     console.log('📦 Format 3 - Found project name in projects array:', name);
                 }
-                // Format 4: projectInfo.projectName (direct)
                 else if (projectData.projectInfo?.projectName) {
                     name = projectData.projectInfo.projectName;
                     console.log('📦 Format 4 - Found project name in projectInfo:', name);
@@ -78,7 +78,22 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
         };
 
         loadProjectFromStorage();
-    }, []); 
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (otherDropdownRef.current && !otherDropdownRef.current.contains(event.target as Node)) {
+                setShowOtherDropdown(false);
+            }
+            if (projectPagesDropdownRef.current && !projectPagesDropdownRef.current.contains(event.target as Node)) {
+                setShowProjectPagesDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const tabs = [
         { id: 'ProDetail', label: 'Project Details' },
@@ -90,10 +105,48 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
         { id: 'project-pages', label: 'Project Pages', hasDropdown: true },
     ];
 
+    const otherMenuItems = [
+        { id: 'people', label: 'People', icon: '👤', route: '/Project_People' },
+        { id: 'bookings', label: 'Bookings', icon: '📅', route: '/Project_Bookings' },
+        { id: 'client-users', label: 'Client Users', icon: '👥', route: '/Project_ClientUsers' },
+        { id: 'contracts', label: 'Contracts', icon: '📄', route: '/Project_Contracts' },
+        { id: 'cut-items', label: 'Cut Items', icon: '📁', route: '/Project_CutItems' },
+        { id: 'cuts', label: 'Cuts', icon: '✂️', route: '/Project_Cuts' },
+        { id: 'event-log', label: 'Event Log Entries', icon: '📋', route: '/Project_EventLog' },
+        { id: 'files', label: 'Files', icon: '📎', route: '/Project_Files' },
+        { id: 'notes', label: 'Notes', icon: '📝', route: '/Project_Notes' },
+    ];
+
+    const handleTabClick = (tabId: string) => {
+        if (tabId === 'other') {
+            setShowOtherDropdown(!showOtherDropdown);
+            setShowProjectPagesDropdown(false);
+        } else if (tabId === 'project-pages') {
+            setShowProjectPagesDropdown(!showProjectPagesDropdown);
+            setShowOtherDropdown(false);
+        } else {
+            const routes: Record<string, string> = {
+                'ProDetail': '/Project_Detail',
+                'Assets': '/Project_Assets',
+                'Shots': '/Project_Shot',
+                'Tasks': '/Project_Tasks',
+                'Media': '/Project_Media',
+            };
+            
+            if (routes[tabId]) {
+                window.location.href = routes[tabId];
+            }
+        }
+    };
+
+    const handleMenuItemClick = (route: string) => {
+        window.location.href = route;
+    };
+
     return (
-        <header className="w-full h-12 px-6 flex items-center justify-between bar-darkV2 fixed z-40">
+        <header className="w-full h-12 px-6 flex items-center justify-between bar-darkV2 fixed z-[9999]">
             {/* Left section */}
-            <div className=" flex items-center gap-6">
+            <div className="flex items-center gap-6">
                 <div>
                     <h2 className="font-semibold text-xl text-white">
                         {loading ? 'Loading...' : projectName.toUpperCase()}
@@ -103,55 +156,75 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                 {/* Navigation tabs */}
                 <nav className="flex items-center gap-1">
                     {tabs.map((tab) => (
-                        <button
+                        <div key={tab.id} className="relative" ref={tab.id === 'other' ? otherDropdownRef : tab.id === 'project-pages' ? projectPagesDropdownRef : null}>
+                            <button
+                                onClick={() => handleTabClick(tab.id)}
+                                className={`px-4 py-2 text-sm rounded transition-colors cursor-pointer flex items-center gap-1 relative
+                                    ${activeTab === tab.id 
+                                        ? 'text-blue-400 bg-blue-500/10' 
+                                        : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                                    }
+                                `}
+                            >
+                                {tab.label}
+                                {tab.hasDropdown && (
+                                    <svg 
+                                        className={`w-4 h-4 transition-transform ${
+                                            (tab.id === 'other' && showOtherDropdown) || 
+                                            (tab.id === 'project-pages' && showProjectPagesDropdown) 
+                                            ? 'rotate-180' : ''
+                                        }`} 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                )}
+                                {activeTab === tab.id && (
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400"></span>
+                                )}
+                            </button>
 
-                            key={tab.id}
-                            onClick={() => {
-                                const routes: Record<string, string> = {
-                                    'ProDetail': '/Project_Detail',
-                                    'Assets': '/Project_Assets',
-                                    'Shots': '/Project_Shot',
-                                    'Tasks': '/Project_Tasks',
-                                    'Media': '/Project_Media',
-                                };
-                                
-                                if (routes[tab.id]) {
-                                    window.location.href = routes[tab.id];
-                                }
-                            }}
-                            className={`px-4 py-2 text-sm rounded transition-colors cursor-pointer flex items-center gap-1 relative
-                                ${activeTab === tab.id 
-                                    ? 'text-blue-400 bg-blue-500/10' 
-                                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
-                                }
-                            `}
-                        >
-                            {tab.label}
-                            {tab.hasDropdown && (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
+                            {/* Dropdown Menu for Other */}
+                            {tab.id === 'other' && showOtherDropdown && (
+                                <div className="absolute top-full left-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
+                                    {otherMenuItems.map((item) => (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => handleMenuItemClick(item.route)}
+                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-3"
+                                        >
+                                            <span className="text-base">{item.icon}</span>
+                                            <span>{item.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             )}
-                            {/* Active indicator - แถบสีด้านล่าง */}
-                            {activeTab === tab.id && (
-                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400"></span>
+
+                            {/* Dropdown Menu for Project Pages (placeholder) */}
+                            {tab.id === 'project-pages' && showProjectPagesDropdown && (
+                                <div className="absolute top-full left-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
+                                    <div className="px-4 py-2.5 text-sm text-gray-400">
+                                        No project pages available
+                                    </div>
+                                </div>
                             )}
-                        </button>
+                        </div>
                     ))}
                 </nav>
             </div>
 
             {/* Right section */}
             <div className="flex items-center gap-3">
-                <a 
-                    href="#" 
+                <button
                     className="px-4 py-2 text-sm text-white hover:bg-gray-700/50 rounded transition-colors cursor-pointer flex items-center gap-1"
                 >
                     Project Actions
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                </a>
+                </button>
             </div>
         </header>
     );

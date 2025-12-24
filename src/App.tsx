@@ -10,6 +10,8 @@ import Project_Tasks from "./Pages/Project/Project_Tasks";
 import Project_Assets from "./Pages/Project/Project_Assets";
 import Project_Media from "./Pages/Project/Project_Media";
 
+import Project_People from "./Pages/Project/Project_People";
+
 
 
 // ░░ Layout สำหรับหน้าที่มี Header ░░
@@ -71,7 +73,7 @@ function MainLayout() {
               alt="logo"
             />
           </Link>
-          <Link className="hover:text-blue-600" to="/">Login</Link>
+          <Link className="hover:text-blue-600" to="/Inbox">Inbox</Link>
           <Link className="hover:text-blue-600" to="/Task">My Task</Link>
           <Link className="hover:text-blue-600" to="/media">Media</Link>
 
@@ -187,14 +189,15 @@ export default function App() {
     <Routes>
       {/* Routes ที่ไม่มี Header */}
       <Route element={<AuthLayout />}>
-        <Route path="/" element={<Login />} />
+        {/* <Route path="/" element={<Login />} /> */}
 
         <Route path="/register" element={<Register />} />
       </Route>
 
       {/* Routes ที่มี Header */}
       <Route element={<MainLayout />}>
-        {/* <Route path="/" element={<Login />} /> อย่าลืมเอาออก */}
+        <Route path="/" element={<Login />} />
+        
         <Route path="/Home" element={<Home />} />
         <Route path="/Project_Detail" element={<Project_Detail/>} />
 
@@ -203,6 +206,9 @@ export default function App() {
         <Route path="/Project_Tasks" element={<Project_Tasks/>} />
         <Route path="/Project_Assets" element={<Project_Assets/>} />
         <Route path="/Project_Media" element={<Project_Media/>} />
+
+        <Route path="/Project_People" element={<Project_People/>} />
+
 
         
         <Route path="/media" element={<div className="pt-20">Media Page</div>} />

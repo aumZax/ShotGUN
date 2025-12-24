@@ -157,7 +157,7 @@ export default function ProjectShot() {
     };
 
     return (
-        <div className="min-h-screen">
+        <div className="h-screen flex flex-col">
             <div className="pt-14">
 
                 <Navbar_Project activeTab="Shots" />
@@ -221,7 +221,7 @@ export default function ProjectShot() {
 
             <div className="h-22"></div>
 
-            <main className="p-6 striky">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden p-6">
                 <div className="space-y-2">
                     {shotData.map((category, categoryIndex) => (
                         <div key={category.category} className="bg-gray-800 rounded-lg">
