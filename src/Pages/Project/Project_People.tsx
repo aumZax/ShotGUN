@@ -39,7 +39,7 @@ export default function Project_People() {
     ];
 
     // Add People
-    const [showCreatePerson, setShowCreatePerson] = useState(true);
+    const [showCreatePerson, setShowCreatePerson] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
 
       // Get current date and time
