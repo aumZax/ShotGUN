@@ -111,7 +111,7 @@ export default function ProjectShot() {
         );
     };
 
-    const handleShotClick = (categoryIndex: number, shotIndex: number, e: React.MouseEvent) => {
+    const handleShotClick = (categoryIndex: number, shotIndex: number) => {
         if (!editingField && !showStatusMenu) {
             setSelectedShot({ categoryIndex, shotIndex });
         }
@@ -247,7 +247,7 @@ export default function ProjectShot() {
                                     {category.shots.map((shot, shotIndex) => (
                                         <div
                                             key={shot.id}
-                                            onClick={(e) => handleShotClick(categoryIndex, shotIndex, e)}
+                                            onClick={() => handleShotClick(categoryIndex, shotIndex)}
                                             className={`group cursor-pointer rounded-lg p-2 transition-all border-2 ${isSelected(categoryIndex, shotIndex)
                                                 ? 'border-blue-500 bg-gray-750'
                                                 : 'border-gray-400 hover:border-gray-600 hover:bg-gray-750'

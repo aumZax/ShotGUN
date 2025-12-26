@@ -103,7 +103,7 @@ export default function Project_Assets() {
         );
     };
 
-    const handleAssetClick = (categoryIndex: number, assetIndex: number, e: React.MouseEvent) => {
+    const handleAssetClick = (categoryIndex: number, assetIndex: number) => {
         if (!editingField && !showStatusMenu) {
             setSelectedAsset({ categoryIndex, assetIndex });
         }
@@ -239,7 +239,7 @@ export default function Project_Assets() {
                                     {category.assets.map((asset, assetIndex) => (
                                         <div
                                             key={asset.id}
-                                            onClick={(e) => handleAssetClick(categoryIndex, assetIndex, e)}
+                                            onClick={() => handleAssetClick(categoryIndex, assetIndex)}
                                             className={`group cursor-pointer rounded-lg p-2 transition-all border-2 ${isSelected(categoryIndex, assetIndex)
                                                 ? 'border-blue-500 bg-gray-750'
                                                 : 'border-gray-400 hover:border-gray-600 hover:bg-gray-750'

@@ -8,7 +8,7 @@ interface NavbarProjectProps {
 export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjectProps) {
     const [projectName, setProjectName] = useState('Loading...');
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
     const [showOtherDropdown, setShowOtherDropdown] = useState(false);
     const [showProjectPagesDropdown, setShowProjectPagesDropdown] = useState(false);
     const otherDropdownRef = useRef<HTMLDivElement>(null);
