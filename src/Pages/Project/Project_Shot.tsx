@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import Navbar_Project from "../../components/Navbar_Project";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
+import ENDPOINTS from "../../config";
 
 // Mock data
 const initialShotData = [
@@ -71,9 +72,9 @@ type StatusType = keyof typeof statusConfig;
 
 
 const statusConfig = {
-    wtg: { label: 'Waiting to Start', color: 'bg-gray-600',icon: '-' },
-    ip: { label: 'In Progress', color: 'bg-green-500',icon: 'dot' },
-    fin: { label: 'Final', color: 'bg-gray-500',icon: 'dot' }
+    wtg: { label: 'Waiting to Start', color: 'bg-gray-600', icon: '-' },
+    ip: { label: 'In Progress', color: 'bg-green-500', icon: 'dot' },
+    fin: { label: 'Final', color: 'bg-gray-500', icon: 'dot' }
 };
 
 interface SelectedShot {
@@ -86,6 +87,7 @@ interface EditingField {
     categoryIndex: number;
     shotIndex: number;
 }
+
 
 export default function ProjectShot() {
     const navigate = useNavigate();
@@ -103,6 +105,33 @@ export default function ProjectShot() {
     const [editingField, setEditingField] = useState<EditingField | null>(null);
     const [showStatusMenu, setShowStatusMenu] = useState<SelectedShot | null>(null);
 
+    // Form states
+    const [shotName, setShotName] = useState('');
+    const [description, setDescription] = useState('');
+    const [taskTemplate, setTaskTemplate] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+
+    const taskTemplates = [
+        "Animation - Shot",
+        "Film VFX - Comp Only Shot",
+        "Film VFX - Full CG Shot w/ Character",
+        "Film VFX - Full CG Shot w/o Character"
+    ];
+
+    // Get project data from localStorage
+    const getProjectData = () => {
+        try {
+            const projectDataString = localStorage.getItem("projectData");
+            if (!projectDataString) return null;
+            return JSON.parse(projectDataString);
+        } catch (error) {
+            console.error("Error parsing projectData:", error);
+            return null;
+        }
+    };
+
     const toggleCategory = (category: string) => {
         setExpandedCategories(prev =>
             prev.includes(category)
@@ -111,6 +140,7 @@ export default function ProjectShot() {
         );
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleShotClick = (categoryIndex: number, shotIndex: number) => {
         if (!editingField && !showStatusMenu) {
             setSelectedShot({ categoryIndex, shotIndex });
@@ -160,10 +190,80 @@ export default function ProjectShot() {
             selectedShot?.shotIndex === shotIndex;
     };
 
+    const handleCreateShot = async () => {
+        // Validate form
+        if (!shotName.trim() || !description.trim() || !taskTemplate) {
+            setError("Please fill in all required fields");
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            const projectData = getProjectData();
+            if (!projectData || !projectData.projectId) {
+                setError("Project data not found");
+                setLoading(false);
+                return;
+            }
+
+            const payload = {
+                projectId: projectData.projectId,
+                shotName: shotName.trim(),
+                description: description.trim(),
+                taskTemplate: taskTemplate,
+                projactName: projectData.projectName || "Unknown Project"
+            };
+
+            console.log("Creating shot with payload:", payload);
+
+            const { data } = await axios.post(ENDPOINTS.CREATESHOT, payload);
+
+            console.log("Shot created successfully:", data);
+
+            // Reset form
+            setShotName('');
+            setDescription('');
+            setTaskTemplate('');
+            setShowCreateShot(false);
+
+            // TODO: Refresh shot list from API
+            // fetchShots();
+
+        } catch (err) {
+            console.error("Error creating shot:", err);
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.message || "Failed to create shot");
+            } else {
+                setError("Failed to create shot. Please try again.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleModalClose = () => {
+        setShowCreateShot(false);
+        setShotName('');
+        setDescription('');
+        setTaskTemplate('');
+        setError('');
+        setShowTemplateDropdown(false);
+    };
+
+    const handleTemplateSelect = (template: string) => {
+        setTaskTemplate(template);
+        setShowTemplateDropdown(false);
+    };
+
+    const filteredTemplates = taskTemplates.filter(template =>
+        template.toLowerCase().includes(taskTemplate.toLowerCase())
+    );
+
     return (
         <div className="h-screen flex flex-col">
             <div className="pt-14">
-
                 <Navbar_Project activeTab="Shots" />
             </div>
             <div className="pt-12">
@@ -174,29 +274,17 @@ export default function ProjectShot() {
                         </h2>
 
                         <div className="flex items-center gap-3 mt-2">
-                            {/* View mode buttons */}
                             <div className="flex items-center gap-1">
                                 <button className="w-15 h-11 flex items-center justify-center rounded transition-colors">
-                                    <img
-                                        src="/icon/one.png"
-                                        alt="view one"
-                                    />
+                                    <img src="/icon/one.png" alt="view one" />
                                 </button>
 
                                 <button className="w-15 h-11 flex items-center justify-center rounded transition-colors ">
-                                    <img
-                                        src="/icon/four.png"
-                                        alt="view one"
-                                    />
+                                    <img src="/icon/four.png" alt="view four" />
                                 </button>
 
-                                <button
-                                    className="w-15 h-11 flex items-center justify-center rounded transition-colors "
-                                >
-                                    <img
-                                        src="/icon/three.png"
-                                        alt="view one"
-                                    />
+                                <button className="w-15 h-11 flex items-center justify-center rounded transition-colors ">
+                                    <img src="/icon/three.png" alt="view three" />
                                 </button>
                             </div>
 
@@ -207,7 +295,6 @@ export default function ProjectShot() {
                                 Add Shot
                                 <span className="text-xs">▼</span>
                             </button>
-
                         </div>
                     </div>
 
@@ -253,13 +340,9 @@ export default function ProjectShot() {
                                                 : 'border-gray-400 hover:border-gray-600 hover:bg-gray-750'
                                                 }`}
                                         >
-                                            {/* Thumbnail */}
                                             <div
                                                 className="relative aspect-video bg-gray-700 rounded-lg overflow-hidden mb-2 cursor-pointer"
-                                                // onClick={() => navigate(`/asset/${asset.id}`)}
                                                 onClick={() => navigate('/Project_Shot/Others_AllForOne')}
-
-
                                             >
                                                 <img
                                                     src={shot.thumbnail}
@@ -269,9 +352,7 @@ export default function ProjectShot() {
                                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-200"></div>
                                             </div>
 
-                                            {/* Shot Info */}
                                             <div className="space-y-2">
-                                                {/* ID Field */}
                                                 <div
                                                     onClick={(e) => handleFieldClick('id', categoryIndex, shotIndex, e)}
                                                     className="px-2 py-1 rounded hover:bg-gray-700 cursor-text"
@@ -296,7 +377,6 @@ export default function ProjectShot() {
                                                     )}
                                                 </div>
 
-                                                {/* Description Field */}
                                                 <div
                                                     onClick={(e) => handleFieldClick('description', categoryIndex, shotIndex, e)}
                                                     className="px-2 py-1 rounded hover:bg-gray-700 cursor-text"
@@ -321,21 +401,24 @@ export default function ProjectShot() {
                                                     )}
                                                 </div>
 
-                                                {/* Status Field */}
                                                 <div className="px-2 relative">
                                                     <button
                                                         onClick={(e) => handleFieldClick('status', categoryIndex, shotIndex, e)}
                                                         className="flex items-center gap-2 w-full py-1 px-2 rounded hover:bg-gray-700"
                                                     >
-                                                        <div className={`w-2 h-2 rounded-full ${statusConfig[shot.status as StatusType].color}`}></div>
+                                                        {statusConfig[shot.status as StatusType].icon === '-' ? (
+                                                            <span className="text-gray-400 font-bold w-2 text-center">-</span>
+                                                        ) : (
+                                                            <div className={`w-2 h-2 rounded-full ${statusConfig[shot.status as StatusType].color}`}></div>
+                                                        )}
                                                         <span className="text-xs text-gray-300">{statusConfig[shot.status as StatusType].label}</span>
                                                     </button>
 
-                                                    {/* Status Dropdown Menu */}
+
                                                     {showStatusMenu?.categoryIndex === categoryIndex &&
                                                         showStatusMenu?.shotIndex === shotIndex && (
                                                             <div className="absolute left-0 top-full mt-1 bg-gray-700 rounded-lg shadow-xl z-50 min-w-[160px] border border-gray-600">
-                                                                {(Object.entries(statusConfig) as [StatusType, { label: string; color: string }][]).map(([key, config]) => (
+                                                                {(Object.entries(statusConfig) as [StatusType, { label: string; color: string; icon: string }][]).map(([key, config]) => (
                                                                     <button
                                                                         key={key}
                                                                         onClick={(e) => {
@@ -344,7 +427,11 @@ export default function ProjectShot() {
                                                                         }}
                                                                         className="flex items-center gap-2 w-full px-3 py-2 hover:bg-gray-600 first:rounded-t-lg last:rounded-b-lg text-left"
                                                                     >
-                                                                        <div className={`w-2 h-2 rounded-full ${config.color}`}></div>
+                                                                        {config.icon === '-' ? (
+                                                                            <span className="text-gray-400 font-bold w-2 text-center">-</span>
+                                                                        ) : (
+                                                                            <div className={`w-2 h-2 rounded-full ${config.color}`}></div>
+                                                                        )}
                                                                         <span className="text-xs text-gray-200">{config.label}</span>
                                                                     </button>
                                                                 ))}
@@ -361,7 +448,6 @@ export default function ProjectShot() {
                 </div>
             </main>
 
-            {/* Click outside to close status menu */}
             {showStatusMenu && (
                 <div
                     className="fixed inset-0 z-40"
@@ -369,59 +455,95 @@ export default function ProjectShot() {
                 ></div>
             )}
 
+            {showTemplateDropdown && (
+                <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowTemplateDropdown(false)}
+                ></div>
+            )}
+
             {showCreateShot && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/60"
-                        onClick={() => setShowCreateShot(false)}
+                        onClick={handleModalClose}
                     />
 
-                    {/* Modal */}
                     <div className="relative w-full max-w-lg bg-[#3b3b3b] rounded-lg shadow-xl">
-                        {/* Header */}
                         <div className="px-5 py-3 border-b border-gray-600 flex items-center justify-between">
                             <h2 className="text-lg text-gray-200 font-medium">
                                 Create a new Shot
                             </h2>
                             <button
-                                onClick={() => setShowCreateShot(false)}
+                                onClick={handleModalClose}
                                 className="text-gray-400 hover:text-white"
                             >
-                                ⚙️
+                                ✕
                             </button>
                         </div>
 
-                        {/* Body */}
                         <div className="p-5 space-y-4">
+                            {error && (
+                                <div className="p-3 bg-red-500/20 border border-red-500 rounded text-red-200 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
                             <div>
                                 <label className="text-sm text-gray-300 block mb-1">
-                                    Shot Name
+                                    Shot Name <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
+                                    value={shotName}
+                                    onChange={(e) => setShotName(e.target.value)}
+                                    placeholder="Enter shot name..."
                                     className="w-full h-9 px-3 bg-gray-700 border border-gray-600 rounded text-gray-200 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
 
                             <div>
                                 <label className="text-sm text-gray-300 block mb-1">
-                                    Description
+                                    Description <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="Enter description..."
                                     className="w-full h-9 px-3 bg-gray-700 border border-gray-600 rounded text-gray-200 text-sm focus:outline-none focus:border-blue-500"
                                 />
                             </div>
 
-                            <div>
+                            <div className="relative">
                                 <label className="text-sm text-gray-300 block mb-1">
-                                    Task Template
+                                    Task Template <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
+                                    value={taskTemplate}
+                                    onChange={(e) => {
+                                        setTaskTemplate(e.target.value);
+                                        setShowTemplateDropdown(true);
+                                    }}
+                                    onFocus={() => setShowTemplateDropdown(true)}
+                                    placeholder="Type to search templates..."
                                     className="w-full h-9 px-3 bg-gray-700 border border-gray-600 rounded text-gray-200 text-sm focus:outline-none focus:border-blue-500"
                                 />
+
+                                {showTemplateDropdown && filteredTemplates.length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto">
+                                        {filteredTemplates.map((template, index) => (
+                                            <div
+                                                key={index}
+                                                onClick={() => handleTemplateSelect(template)}
+                                                className="px-3 py-2 text-sm text-gray-200 hover:bg-gray-600 cursor-pointer"
+                                            >
+                                                {template}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -430,7 +552,7 @@ export default function ProjectShot() {
                                 </label>
                                 <input
                                     disabled
-                                    value="Demo: Animation"
+                                    value={getProjectData()?.projectName || "Demo: Animation"}
                                     className="w-full h-9 px-3 bg-gray-800 border border-gray-600 rounded text-gray-400 text-sm"
                                 />
                             </div>
@@ -440,7 +562,6 @@ export default function ProjectShot() {
                             </button>
                         </div>
 
-                        {/* Footer */}
                         <div className="px-5 py-3 border-t border-gray-600 flex justify-between items-center">
                             <button className="text-sm text-blue-400 hover:underline">
                                 Open Bulk Import
@@ -448,24 +569,24 @@ export default function ProjectShot() {
 
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => setShowCreateShot(false)}
+                                    onClick={handleModalClose}
                                     className="px-4 h-8 bg-gray-600 hover:bg-gray-500 text-sm rounded flex items-center justify-center"
                                 >
                                     Cancel
                                 </button>
 
                                 <button
-                                    className="px-4 h-8 bg-blue-600 hover:bg-blue-700 text-sm rounded text-white flex items-center justify-center"
+                                    onClick={handleCreateShot}
+                                    disabled={loading}
+                                    className="px-4 h-8 bg-blue-600 hover:bg-blue-700 text-sm rounded text-white flex items-center justify-center disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    Create Shot
+                                    {loading ? "Creating..." : "Create Shot"}
                                 </button>
                             </div>
-
                         </div>
                     </div>
                 </div>
             )}
-
         </div>
     );
 }

@@ -18,6 +18,7 @@ const ENDPOINTS = {
   UPLOAD: `${BASE_URL}/upload`,
   GETPROJECTIMAGES: `${BASE_URL}/getProjectImages`,
   DELETEPROJECT: `${BASE_URL}/deleteProject`,
+  CREATESHOT:`${BASE_URL}/createShot`,
   // เพิ่ม endpoint อื่น ๆ ตามต้องการ
 };
 
