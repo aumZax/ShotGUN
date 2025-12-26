@@ -6,11 +6,14 @@ import Register from "./Pages/Register";
 import Project_Detail from "./Pages/Project/Project_Detail";
 
 import Project_Shot from "./Pages/Project/Project_Shot";
-import Project_Tasks from "./Pages/Project/Project_Tasks";
+import Others_People from "./Pages/Project/Others_People";
+import Others_AllForOne from "./Pages/Project/Others_AllForOne";
 import Project_Assets from "./Pages/Project/Project_Assets";
-import Project_Media from "./Pages/Project/Project_Media";
+import Project_Tasks from "./Pages/Project/Project_Tasks";
 
-import Project_People from "./Pages/Project/Project_People";
+// import Project_Tasks from "./Pages/Project/Project_Tasks";
+// import Project_Assets from "./Pages/Project/Project_Assets";
+// import Project_Media from "./Pages/Project/Project_Media";
 
 
 
@@ -21,18 +24,32 @@ function MainLayout() {
   const navigate = useNavigate();
 
   // ดึงข้อมูล user จาก localStorage แบบ lazy initialization
-  const [userEmail] = useState<string>(() => {
-    try {
-      const authUser = localStorage.getItem("authUser");
-      if (authUser) {
-        const userData = JSON.parse(authUser);
-        return userData.email || "Anonimus@gmail.com";
-      }
-    } catch (error) {
-      console.error("Error parsing AuthUser data:", error);
+ const [authUser] = useState<{
+  email: string;
+  avatarURL: string;
+}>(() => {
+  try {
+    const raw = localStorage.getItem("authUser");
+    if (raw) {
+      const u = JSON.parse(raw);
+      return {
+        email: u.email || "Anonymous@gmail.com",
+        avatarURL: u.avatarURL || "/icon/black-dog.png",
+      };
     }
-    return "Anonimus@gmail.com";
-  });
+  } catch (e) {
+    console.error("AuthUser parse error:", e);
+  }
+
+  return {
+    email: "Anonymous@gmail.com",
+    avatarURL: "/icon/black-dog.png",
+  };
+});
+
+
+  
+
 
   // ฟังก์ชัน Logout
   const handleLogout = () => {
@@ -63,7 +80,7 @@ function MainLayout() {
   return (
     <div className="min-h-screen">
       {/* ░░ TOP NAV BAR ░░ */}
-      <header className="fixed  w-full h-14 leading-tight shadow-md flex items-center justify-between px-2 z-50 bar-dark">
+      <header className="fixed  w-full h-14 leading-tight shadow-md flex items-center justify-between px-2 z-[150] bar-dark">
         {/* LEFT — เมนูต่างๆ */}
         <div className="flex items-center gap-6 text-sm">
           <Link to="/Home">
@@ -137,7 +154,7 @@ function MainLayout() {
           {/* Profile with Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <img
-              src="/icon/black-dog.png"
+              src={authUser.avatarURL}
               className="w-8 h-8 rounded-full object-cover cursor-pointer"
               alt="profile"
               onClick={() => setIsOpen(!isOpen)}
@@ -147,7 +164,7 @@ function MainLayout() {
             {isOpen && (
               <div className="absolute right-0 mt-2 w-48 bar-dark rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                  <a href="#profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                  {userEmail}
+                  {authUser.email}
                 </a>
                 <a href="#settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                   Settings
@@ -189,30 +206,32 @@ export default function App() {
     <Routes>
       {/* Routes ที่ไม่มี Header */}
       <Route element={<AuthLayout />}>
-        {/* <Route path="/" element={<Login />} /> */}
+        <Route path="/" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
       </Route>
 
       {/* Routes ที่มี Header */}
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Login />} />
-        
+        {/* <Route path="/" element={<Login />} /> อย่าลืมเอาออก */}
         <Route path="/Home" element={<Home />} />
         <Route path="/Project_Detail" element={<Project_Detail/>} />
 
         <Route path="/Project_Detail" element={<Project_Detail/>} />
         <Route path="/Project_Shot" element={<Project_Shot/>} />
-        <Route path="/Project_Tasks" element={<Project_Tasks/>} />
-        <Route path="/Project_Assets" element={<Project_Assets/>} />
-        <Route path="/Project_Media" element={<Project_Media/>} />
+         <Route path="/Project_Assets" element={<Project_Assets/>} />
+         <Route path="/Project_Tasks" element={<Project_Tasks/>} />
 
-        <Route path="/Project_People" element={<Project_People/>} />
+  
 
+           
+        <Route path="/:section/Others_AllForOne" element={<Others_AllForOne/>} />
 
-        
+        <Route path="/Others_People" element={<Others_People/>} />
+
         <Route path="/media" element={<div className="pt-20">Media Page</div>} />
         <Route path="/people" element={<div>People Page</div>} />
+
         {/* เพิ่ม route อื่นๆ ตามต้องการ */}
       </Route>
     </Routes>

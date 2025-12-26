@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import Navbar_Project from "../../components/Navbar_Project";
+import { useNavigate } from "react-router-dom";
 
 
 // Mock data
@@ -86,6 +87,8 @@ interface EditingField {
 }
 
 export default function ProjectShot() {
+    const navigate = useNavigate();
+
     const [showCreateShot, setShowCreateShot] = useState(false);
 
     // เปิดทุก category ที่มี shots โดยอัตโนมัติ
@@ -163,7 +166,7 @@ export default function ProjectShot() {
                 <Navbar_Project activeTab="Shots" />
             </div>
             <div className="pt-12">
-                <header className="w-full h-22 px-4 flex items-center justify-between bar-gray fixed z-40">
+                <header className="w-full h-22 px-4 flex items-center justify-between bar-gray fixed z-[50]">
                     <div className="flex flex-col">
                         <h2 className="text-2xl font-normal text-gray-300">
                             Shot ⭐
@@ -224,7 +227,7 @@ export default function ProjectShot() {
             <main className="flex-1 overflow-y-auto overflow-x-hidden p-6">
                 <div className="space-y-2">
                     {shotData.map((category, categoryIndex) => (
-                        <div key={category.category} className="bg-gray-800 rounded-lg">
+                        <div key={category.category} className="bar-gray rounded-lg">
                             <button
                                 onClick={() => toggleCategory(category.category)}
                                 className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-750 transition-colors"
@@ -246,11 +249,17 @@ export default function ProjectShot() {
                                             onClick={(e) => handleShotClick(categoryIndex, shotIndex, e)}
                                             className={`group cursor-pointer rounded-lg p-2 transition-all border-2 ${isSelected(categoryIndex, shotIndex)
                                                 ? 'border-blue-500 bg-gray-750'
-                                                : 'border-gray-700 hover:border-gray-600 hover:bg-gray-750'
+                                                : 'border-gray-400 hover:border-gray-600 hover:bg-gray-750'
                                                 }`}
                                         >
                                             {/* Thumbnail */}
-                                            <div className="relative aspect-video bg-gray-700 rounded-lg overflow-hidden mb-2">
+                                            <div
+                                                className="relative aspect-video bg-gray-700 rounded-lg overflow-hidden mb-2 cursor-pointer"
+                                                // onClick={() => navigate(`/asset/${asset.id}`)}
+                                                onClick={() => navigate('/Project_Shot/Others_AllForOne')}
+
+
+                                            >
                                                 <img
                                                     src={shot.thumbnail}
                                                     alt={shot.id}

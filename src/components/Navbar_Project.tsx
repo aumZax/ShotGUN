@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from "react-router-dom";
 
 interface NavbarProjectProps {
     activeTab?: string;
@@ -12,17 +13,18 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
     const [showProjectPagesDropdown, setShowProjectPagesDropdown] = useState(false);
     const otherDropdownRef = useRef<HTMLDivElement>(null);
     const projectPagesDropdownRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadProjectFromStorage = () => {
             try {
                 setLoading(true);
                 setError(null);
-                
+
                 console.log('🔵 Loading project from storage');
-                
+
                 const storedData = localStorage.getItem('projectData');
-                
+
                 if (!storedData) {
                     console.warn('⚠️ No project data in localStorage');
                     setProjectName('No Project Data');
@@ -106,7 +108,7 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
     ];
 
     const otherMenuItems = [
-        { id: 'people', label: 'People', icon: '👤', route: '/Project_People' },
+        { id: 'people', label: 'People', icon: '👤', route: '/Others_People' },
         { id: 'bookings', label: 'Bookings', icon: '📅', route: '/Project_Bookings' },
         { id: 'client-users', label: 'Client Users', icon: '👥', route: '/Project_ClientUsers' },
         { id: 'contracts', label: 'Contracts', icon: '📄', route: '/Project_Contracts' },
@@ -132,19 +134,20 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                 'Tasks': '/Project_Tasks',
                 'Media': '/Project_Media',
             };
-            
+
             if (routes[tabId]) {
-                window.location.href = routes[tabId];
+                navigate(routes[tabId]);
             }
         }
     };
 
     const handleMenuItemClick = (route: string) => {
-        window.location.href = route;
+        navigate(route);
     };
 
+
     return (
-        <header className="w-full h-12 px-6 flex items-center justify-between bar-darkV2 fixed z-[9999]">
+        <header className="w-full h-12 px-6 flex items-center justify-between bar-darkV2 fixed z-[100]">
             {/* Left section */}
             <div className="flex items-center gap-6">
                 <div>
@@ -160,22 +163,21 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                             <button
                                 onClick={() => handleTabClick(tab.id)}
                                 className={`px-4 py-2 text-sm rounded transition-colors cursor-pointer flex items-center gap-1 relative
-                                    ${activeTab === tab.id 
-                                        ? 'text-blue-400 bg-blue-500/10' 
+                                    ${activeTab === tab.id
+                                        ? 'text-blue-400 bg-blue-500/10'
                                         : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                                     }
                                 `}
                             >
                                 {tab.label}
                                 {tab.hasDropdown && (
-                                    <svg 
-                                        className={`w-4 h-4 transition-transform ${
-                                            (tab.id === 'other' && showOtherDropdown) || 
-                                            (tab.id === 'project-pages' && showProjectPagesDropdown) 
-                                            ? 'rotate-180' : ''
-                                        }`} 
-                                        fill="none" 
-                                        stroke="currentColor" 
+                                    <svg
+                                        className={`w-4 h-4 transition-transform ${(tab.id === 'other' && showOtherDropdown) ||
+                                                (tab.id === 'project-pages' && showProjectPagesDropdown)
+                                                ? 'rotate-180' : ''
+                                            }`}
+                                        fill="none"
+                                        stroke="currentColor"
                                         viewBox="0 0 24 24"
                                     >
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
