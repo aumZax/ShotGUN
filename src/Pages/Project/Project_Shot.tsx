@@ -67,12 +67,13 @@ const initialShotData = [
     }
 ];
 
-type StatusType = 'wtg' | 'ip' | 'fin';
+type StatusType = keyof typeof statusConfig;
 
-const statusConfig: Record<StatusType, { label: string; color: string }> = {
-    wtg: { label: 'Waiting to Start', color: 'bg-gray-600' },
-    ip: { label: 'In Progress', color: 'bg-green-500' },
-    fin: { label: 'Final', color: 'bg-gray-500' }
+
+const statusConfig = {
+    wtg: { label: 'Waiting to Start', color: 'bg-gray-600',icon: '-' },
+    ip: { label: 'In Progress', color: 'bg-green-500',icon: 'dot' },
+    fin: { label: 'Final', color: 'bg-gray-500',icon: 'dot' }
 };
 
 interface SelectedShot {
