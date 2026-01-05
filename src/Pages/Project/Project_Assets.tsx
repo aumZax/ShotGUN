@@ -3,7 +3,7 @@ import { ChevronRight, ChevronDown } from 'lucide-react';
 import Navbar_Project from "../../components/Navbar_Project";
 import { useNavigate } from "react-router-dom";
 
-
+import { Image, } from 'lucide-react';
 // Mock data
 const initialAssetData = [
     {
@@ -24,7 +24,7 @@ const initialAssetData = [
         assets: [
             {
                 id: 'bunny_030_0010',
-                thumbnail: '/api/placeholder/220/150',
+                thumbnail: '/icon/black-dog.png',
                 description: 'Other: he came trotting along in a',
                 status: 'wtg'
             },
@@ -109,9 +109,22 @@ export default function Project_Assets() {
         }
     };
 
+
+    // เพิ่ม state สำหรับเก็บตำแหน่งที่ควรแสดง menu
+    const [statusMenuPosition, setStatusMenuPosition] = useState<'bottom' | 'top'>('bottom');
+
+    // แก้ไขฟังก์ชัน handleFieldClick
     const handleFieldClick = (field: string, categoryIndex: number, assetIndex: number, e: React.MouseEvent) => {
         e.stopPropagation();
         if (field === 'status') {
+            // คำนวณตำแหน่งเพื่อดูว่าควรแสดง menu ด้านบนหรือล่าง
+            const target = e.currentTarget as HTMLElement;
+            const rect = target.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+
+            // ถ้าพื้นที่ด้านล่างน้อยกว่า 200px และพื้นที่ด้านบนมากกว่า ให้แสดงด้านบน
+            setStatusMenuPosition(spaceBelow < 200 && spaceAbove > spaceBelow ? 'top' : 'bottom');
             setShowStatusMenu({ categoryIndex, assetIndex });
         } else {
             setEditingField({ field, categoryIndex, assetIndex });
@@ -159,23 +172,25 @@ export default function Project_Assets() {
                 <Navbar_Project activeTab="Assets" />
             </div>
             <div className="pt-12">
-                <header className="w-full h-22 px-4 flex items-center justify-between bar-gray fixed z-[50]">
+                <header className="w-full h-22 px-4 flex items-center justify-between fixed z-[50] bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
                     <div className="flex flex-col">
-                        <h2 className="text-2xl font-normal text-gray-300">
-                            Assets ⭐
-                        </h2>
+                        <div className='flex'>
+                            <h2 className="px-2 text-2xl font-normal bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                Assets
+                            </h2>
+                            <Image className="w-8 h-8 text-blue-400 mr-3" />
+                        </div>
+
+
 
                         <div className="flex items-center gap-3 mt-2">
-                      
-
                             <button
                                 onClick={() => setShowCreateAsset(true)}
-                                className="px-4 h-8 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded flex items-center gap-1"
+                                className="px-4 h-8 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105"
                             >
                                 Add Asset
                                 <span className="text-xs">▼</span>
                             </button>
-
                         </div>
                     </div>
 
@@ -184,7 +199,7 @@ export default function Project_Assets() {
                             <input
                                 type="text"
                                 placeholder="Search Asset..."
-                                className="w-64 h-8 pl-3 pr-10 bg-gray-700 border border-gray-600 rounded text-gray-300 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                className="w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
                             />
                         </div>
                     </div>
@@ -193,13 +208,13 @@ export default function Project_Assets() {
 
             <div className="h-22"></div>
 
-            <main className="flex-1 overflow-y-auto overflow-x-hidden p-6">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 bg-gray-900 ">
                 <div className="space-y-2">
                     {assetData.map((category, categoryIndex) => (
-                        <div key={category.category} className="bar-gray rounded-lg">
+                        <div key={category.category} className="bg-gray-800 rounded-xl border border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
                             <button
                                 onClick={() => toggleCategory(category.category)}
-                                className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-750 transition-colors"
+                                className="w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-gray-500/30 transition-all duration-200 hover:shadow-gray-500/50"
                             >
                                 {expandedCategories.includes(category.category) ? (
                                     <ChevronDown className="w-4 h-4" />
@@ -207,7 +222,7 @@ export default function Project_Assets() {
                                     <ChevronRight className="w-4 h-4" />
                                 )}
                                 <span className="font-medium">{category.category}</span>
-                                <span className="text-gray-400 text-sm">({category.count})</span>
+                                <span className="text-green-400 text-sm">({category.count})</span>
                             </button>
 
                             {expandedCategories.includes(category.category) && category.assets.length > 0 && (
@@ -216,24 +231,29 @@ export default function Project_Assets() {
                                         <div
                                             key={asset.id}
                                             onClick={() => handleAssetClick(categoryIndex, assetIndex)}
-                                            className={`group cursor-pointer rounded-lg p-2 transition-all border-2 ${isSelected(categoryIndex, assetIndex)
+                                            className={`group cursor-pointer rounded-xl p-3 transition-all duration-300 border-2 shadow-lg hover:shadow-2xl hover:ring-2 hover:ring-blue-400 ${isSelected(categoryIndex, assetIndex)
                                                 ? 'border-blue-500 bg-gray-750'
                                                 : 'border-gray-400 hover:border-gray-600 hover:bg-gray-750'
                                                 }`}
                                         >
                                             {/* Thumbnail */}
-                                            <div
-                                                className="relative aspect-video bg-gray-700 rounded-lg overflow-hidden mb-2 cursor-pointer"
-                                                // onClick={() => navigate(`/asset/${asset.id}`)}
-                                                onClick={() => navigate('/Project_Assets/Others_AllForOne')}
-
-                                            >
+                                            <div className="relative aspect-video bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl overflow-hidden mb-3 cursor-pointer shadow-inner" onClick={() => navigate('/Project_Assets/Others_AllForOne')}>
                                                 <img
                                                     src={asset.thumbnail}
                                                     alt={asset.id}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                 />
-                                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-200"></div>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                                                {/* Hover Overlay Icon */}
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">
+                                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {/* Asset Info */}
@@ -305,7 +325,7 @@ export default function Project_Assets() {
                                                     {/* Status Dropdown Menu */}
                                                     {showStatusMenu?.categoryIndex === categoryIndex &&
                                                         showStatusMenu?.assetIndex === assetIndex && (
-                                                            <div className="absolute left-0 top-full mt-1 bg-gray-700 rounded-lg shadow-xl z-50 min-w-[160px] border border-gray-600">
+                                                            <div className={`absolute left-0 ${statusMenuPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} bg-gray-700 rounded-lg shadow-xl z-50 min-w-[160px] border border-gray-600`}>
                                                                 {(Object.entries(statusConfig) as [StatusType, { label: string; color: string; icon: string }][]).map(([key, config]) => (
                                                                     <button
                                                                         key={key}

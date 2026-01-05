@@ -83,46 +83,70 @@ function MainLayout() {
   return (
     <div className="min-h-screen">
       {/* ░░ TOP NAV BAR ░░ */}
-      <header className="fixed  w-full h-14 leading-tight shadow-md flex items-center justify-between px-2 z-[150] bar-dark">
+     <header className="fixed w-full h-14 leading-tight shadow-2xl flex items-center justify-between px-2 z-[150] bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm">
         {/* LEFT — เมนูต่างๆ */}
         <div className="flex items-center gap-6 text-sm">
+          
+          <div className="flex items-center gap-6">
           <Link to="/Home">
             <img
               src="/icon/color.png"
-              className="w-12 h-12 rounded-md object-cover"
+              className="w-12 h-12 rounded-md object-cover hover:scale-110 transition-transform duration-300 shadow-lg ring-2 ring-blue-500/30"
               alt="logo"
             />
           </Link>
-          <Link className="hover:text-blue-600 text-xl" to="/Inbox">Inbox</Link>
-          <Link className="hover:text-blue-600 text-xl" to="/Task">My Task</Link>
-          <Link className="hover:text-blue-600 text-xl" to="/media">Media</Link>
+          </div>
+
+          <div className="flex items-center gap-6 text-sm"></div>
+          <Link className="hover:text-blue-400 text-xl text-gray-300 font-medium transition-all duration-300 hover:scale-105 relative group" to="/Inbox">
+            Inbox
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
+          </Link>
+          <Link className="hover:text-blue-400 text-xl text-gray-300 font-medium transition-all duration-300 hover:scale-105 relative group" to="/Task">
+            My Task
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
+          </Link>
+          <Link className="hover:text-blue-400 text-xl text-gray-300 font-medium transition-all duration-300 hover:scale-105 relative group" to="/media">
+            Media
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
+          </Link>
 
           <div className="relative group">
-            <span className="hover:text-blue-600 cursor-pointer text-xl">Projects ▼</span>
-            <div className="absolute hidden group-hover:block bg-black shadow rounded mt-1 w-32 z-10">
-              <Link to="/p1" className="block px-3 py-2 hover:bg-gray-100 text-xl">Project 1</Link>
-              <Link to="/p2" className="block px-3 py-2 hover:bg-gray-100 text-xl">Project 2</Link>
+            <span className="hover:text-blue-400 cursor-pointer text-xl text-gray-300 font-medium transition-all duration-300">
+              Projects ▼
+            </span>
+            <div className="absolute hidden group-hover:block bg-gray-800 shadow-2xl rounded-lg mt-1 w-32 z-10 border border-gray-700/50 overflow-hidden backdrop-blur-md">
+              <Link to="/p1" className="block px-3 py-2 hover:bg-blue-600/20 text-xl text-gray-300 transition-colors duration-200 border-b border-gray-700/30">Project 1</Link>
+              <Link to="/p2" className="block px-3 py-2 hover:bg-blue-600/20 text-xl text-gray-300 transition-colors duration-200">Project 2</Link>
             </div>
           </div>
 
           <div className="relative group">
-            <span className="hover:text-blue-600 cursor-pointer text-xl">All Pages ▼</span>
-            <div className="absolute hidden group-hover:block bg-black shadow rounded mt-1 w-32 z-10">
-              <Link to="/page1" className="block px-3 py-2 hover:bg-gray-100 text-xl">Page 1</Link>
-              <Link to="/page2" className="block px-3 py-2 hover:bg-gray-100 text-xl">Page 2</Link>
+            <span className="hidden md:inline-block hover:text-blue-400 cursor-pointer text-xl text-gray-300 font-medium transition-all duration-300">
+              All Pages ▼
+            </span>
+            <div className="absolute hidden group-hover:block bg-gray-800 shadow-2xl rounded-lg mt-1 w-32 z-10 border border-gray-700/50 overflow-hidden backdrop-blur-md">
+              <Link to="/page1" className="block px-3 py-2 hover:bg-blue-600/20 text-xl text-gray-300 transition-colors duration-200 border-b border-gray-700/30">Page 1</Link>
+              <Link to="/page2" className="block px-3 py-2 hover:bg-blue-600/20 text-xl text-gray-300 transition-colors duration-200">Page 2</Link>
             </div>
           </div>
 
-          <Link className="hover:text-blue-600 text-xl" to="/people">People</Link>
-          <Link className="hover:text-blue-600 text-xl" to="/apps">Apps ▼</Link>
+          <Link className="hidden md:inline-block hover:text-blue-400 text-xl text-gray-300 font-medium transition-all duration-300 hover:scale-105 relative group" to="/people">
+            People
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
+          </Link>
+          <Link className="hidden md:inline-block hover:text-blue-400 text-xl text-gray-300 font-medium transition-all duration-300 hover:scale-105 relative group" to="/apps">
+            Apps ▼
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 group-hover:w-full transition-all duration-300"></span>
+          </Link>
         </div>
 
         {/* RIGHT — Search, Icons, Profile */}
         <div className="flex items-center gap-4">
-          <div className="text-xl cursor-pointer">
+          <div className="text-xl cursor-pointer hover:scale-110 transition-transform duration-300">
             <img
               src="/icon/search.png"
-              className="w-8 h-8 rounded-full object-cover cursor-pointer"
+              className="w-8 h-8 rounded-full object-cover cursor-pointer hover:shadow-lg hover:shadow-blue-500/30"
               alt="profile"
             />
           </div>
@@ -130,26 +154,27 @@ function MainLayout() {
             <input
               type="text"
               placeholder="Search..."
-              className="border rounded-full pl-2 pr-3 py-1 text-sm w-48 focus:outline-blue-400"
+              className="border border-gray-700 rounded-full pl-2 pr-3 py-1 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 text-gray-300 placeholder-gray-500 backdrop-blur-sm transition-all duration-300"
             />
           </div>
-          <div className="text-xl cursor-pointer">
+          <div className="text-xl cursor-pointer hover:scale-110 transition-transform duration-300">
             <img
               src="/icon/gift.png"
-              className="w-8 h-8 rounded-full object-cover cursor-pointer"
-              alt="profile"
-            /></div>
-          <div className="text-xl cursor-pointer">
-            <img
-              src="/icon/add.png"
-              className="w-8 h-8 rounded-full object-cover cursor-pointer"
+              className="w-8 h-8 rounded-full object-cover cursor-pointer hover:shadow-lg hover:shadow-purple-500/30 hover:rotate-12 transition-all duration-300"
               alt="profile"
             />
           </div>
-          <div className="text-xl cursor-pointer">
+          <div className="text-xl cursor-pointer hover:scale-110 transition-transform duration-300">
+            <img
+              src="/icon/add.png"
+              className="w-8 h-8 rounded-full object-cover cursor-pointer hover:shadow-lg hover:shadow-green-500/30 hover:rotate-90 transition-all duration-300"
+              alt="profile"
+            />
+          </div>
+          <div className="text-xl cursor-pointer hover:scale-110 transition-transform duration-300">
              <img
               src="/icon/light.png"
-              className="w-8 h-8 rounded-full object-cover cursor-pointer"
+              className="w-8 h-8 rounded-full object-cover cursor-pointer hover:shadow-lg hover:shadow-yellow-500/30"
               alt="profile"
             />
           </div>
@@ -158,25 +183,25 @@ function MainLayout() {
           <div className="relative" ref={dropdownRef}>
             <img
               src={authUser.avatarURL}
-              className="w-12 h-12 rounded-full object-cover cursor-pointer"
+              className="w-12 h-12 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300 ring-2 ring-gray-700 hover:ring-blue-500"
               alt="profile"
               onClick={() => setIsOpen(!isOpen)}
             />
             
             {/* Dropdown Menu */}
             {isOpen && (
-              <div className="absolute right-0 mt-2 w-48 bar-dark rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                 <a href="profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-2xl border border-gray-700/50 py-2 z-50 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-200">
+                 <a href="profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600/20 transition-colors duration-200 hover:pl-5">
                   {authUser.email}
                 </a>
-                <a href="#settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="#settings" className="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600/20 transition-colors duration-200 hover:pl-5">
                   Settings
                 </a>
              
-                <hr className="my-2 border-gray-200" />
+                <hr className="my-2 border-gray-700/50" />
                 <button 
                   onClick={handleLogout}
-                  className="block dropDownLogOut px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                  className="block dropDownLogOut px-4 py-2 text-sm text-red-400 hover:bg-red-600/20 w-full text-left transition-all duration-200 hover:pl-5 font-medium"
                 >
                   Logout
                 </button>

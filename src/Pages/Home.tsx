@@ -173,7 +173,7 @@ export default function Home() {
         });
     };
 
-      const handleImageClick = (projectId: string, event: React.MouseEvent) => {
+    const handleImageClick = (projectId: string, event: React.MouseEvent) => {
         event.stopPropagation();
         fileInputRefs.current[projectId]?.click();
     };
@@ -238,7 +238,7 @@ export default function Home() {
         setProjectName(templateName);
     };
 
-  
+
 
     const handleFileChange = async (
         projectId: string,
@@ -457,33 +457,55 @@ export default function Home() {
 
     return (
         <div className="pt-14 min-h-screen m-0 p-0">
-            <header className="w-full h-22 px-4 flex items-center justify-between bar-gray sticky top-0 z-40">
+            <header className="w-full h-22 px-4 flex items-center justify-between bg-gray-900 sticky top-0 z-40 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
                 <div className="flex flex-col">
-                    <h2 className="text-2xl font-normal text-gray-300">
-                        Projects <span className="text-white italic">-- shared</span>
+                    <h2 className="text-3xl font-semibold text-gray-200 flex items-center gap-3">
+                        Projects
+                        <span className="text-xs rounded-md bg-gray-800 border border-gray-700 px-2 py-0.5 text-white-400">
+                            shared
+                        </span>
                     </h2>
+
 
                     <div className="flex items-center gap-3 mt-2">
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => setViewMode('one')}
-                                className={`w-15 h-11 flex items-center justify-center rounded transition-colors ${viewMode === 'one' ? 'bg-blue-600' : 'hover:bg-gray-700'
-                                    }`}
+                                className={`w-16 h-11 flex items-center justify-center rounded-lg
+                                    bg-gradient-to-r from-blue-600 to-blue-500
+                                    hover:from-blue-700 hover:to-blue-600
+                                    text-white shadow-lg shadow-blue-500/30
+                                    transition-all duration-200
+                                    hover:shadow-blue-500/50 hover:scale-105
+                                    ${viewMode === 'one' ? '' : 'hover:bg-gray-700'}`}
+
                             >
-                                <img src="/icon/one.png" alt="view one" className="max-w-6 max-h-6 object-contain"/>
+                                <img src="/icon/one.png" alt="view one" className="max-w-6 max-h-6 object-contain" />
                             </button>
 
                             <button
                                 onClick={() => setViewMode('four')}
-                                className={`w-15 h-11 flex items-center justify-center rounded transition-colors ${viewMode === 'four' ? 'bg-blue-600' : 'hover:bg-gray-700'
+                                className={`w-16 h-11 flex items-center justify-center rounded-lg
+                                        bg-gradient-to-r from-blue-600 to-blue-500
+                                        hover:from-blue-700 hover:to-blue-600
+                                        text-white shadow-lg shadow-blue-500/30
+                                        transition-all duration-200
+                                        hover:shadow-blue-500/50 hover:scale-105
+                                        ${viewMode === 'four' ? 'bg-blue-600' : 'hover:bg-gray-700'
                                     }`}
                             >
-                                <img src="/icon/four.png" alt="view four" className="max-w-6 max-h-6 object-contain"/>
+                                <img src="/icon/four.png" alt="view four" className="max-w-6 max-h-6 object-contain" />
                             </button>
 
                             <button
                                 onClick={() => setViewMode('three')}
-                                className={`w-15 h-11 flex items-center justify-center rounded transition-colors ${viewMode === 'three' ? 'bg-blue-600' : 'hover:bg-gray-700'
+                                className={`w-16 h-11 flex items-center justify-center rounded-lg
+                                        bg-gradient-to-r from-blue-600 to-blue-500
+                                        hover:from-blue-700 hover:to-blue-600
+                                        text-white shadow-lg shadow-blue-500/30
+                                        transition-all duration-200
+                                        hover:shadow-blue-500/50 hover:scale-105
+                                        ${viewMode === 'three' ? 'bg-blue-600' : 'hover:bg-gray-700'
                                     }`}
                             >
                                 <img src="/icon/three.png" alt="view three" className="max-w-6 max-h-6 object-contain" />
@@ -492,7 +514,7 @@ export default function Home() {
 
                         <button
                             onClick={() => setShowModal(true)}
-                            className="px-4 h-8 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded flex items-center gap-1"
+                            className="px-4 h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105"
                         >
                             Add Project
                             <span className="text-xs">▼</span>
@@ -505,7 +527,7 @@ export default function Home() {
                         <input
                             type="text"
                             placeholder="Search Projects..."
-                            className="w-64 h-8 pl-3 pr-10 bg-gray-700 border border-gray-600 rounded text-gray-300 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            className="w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
                         />
                     </div>
                 </div>

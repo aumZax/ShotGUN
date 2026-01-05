@@ -147,32 +147,32 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
 
 
     return (
-        <header className="w-full h-12 px-6 flex items-center justify-between bar-darkV2 fixed z-[100]">
+       <header className="w-full h-12 px-6 flex items-center justify-between bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 fixed z-[100] shadow-lg">
             {/* Left section */}
             <div className="flex items-center gap-6">
                 <div>
-                    <h2 className="font-semibold text-xl text-white">
+                    <h2 className="font-semibold text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
                         {loading ? 'Loading...' : projectName.toUpperCase()}
                     </h2>
                 </div>
 
                 {/* Navigation tabs */}
-                <nav className="flex items-center gap-1">
+                <nav className="flex items-center gap-1 ">
                     {tabs.map((tab) => (
                         <div key={tab.id} className="relative" ref={tab.id === 'other' ? otherDropdownRef : tab.id === 'project-pages' ? projectPagesDropdownRef : null}>
                             <button
                                 onClick={() => handleTabClick(tab.id)}
-                                className={`px-4 py-2 text-sm rounded transition-colors cursor-pointer flex items-center gap-1 relative
+                                className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 cursor-pointer flex items-center gap-1 relative
                                     ${activeTab === tab.id
-                                        ? 'text-blue-400 bg-blue-500/10'
-                                        : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                                        ? 'text-blue-400 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105'
+                                        : 'text-gray-300 bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-gray-500/30 transition-all duration-200 hover:shadow-gray-500/50 hover:scale-105'
                                     }
                                 `}
                             >
                                 {tab.label}
                                 {tab.hasDropdown && (
                                     <svg
-                                        className={`w-4 h-4 transition-transform ${(tab.id === 'other' && showOtherDropdown) ||
+                                        className={`w-4 h-4 transition-transform duration-200 ${(tab.id === 'other' && showOtherDropdown) ||
                                                 (tab.id === 'project-pages' && showProjectPagesDropdown)
                                                 ? 'rotate-180' : ''
                                             }`}
@@ -184,18 +184,18 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                                     </svg>
                                 )}
                                 {activeTab === tab.id && (
-                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400"></span>
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full"></span>
                                 )}
                             </button>
 
                             {/* Dropdown Menu for Other */}
                             {tab.id === 'other' && showOtherDropdown && (
-                                <div className="absolute top-full left-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
+                                <div className="absolute top-full left-0 mt-1 w-56 bg-gray-900 border border-gray-700/70 rounded-xl shadow-2xl overflow-hidden z-50 backdrop-blur-sm">
                                     {otherMenuItems.map((item) => (
                                         <button
                                             key={item.id}
                                             onClick={() => handleMenuItemClick(item.route)}
-                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors flex items-center gap-3"
+                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-700/80 hover:text-white transition-all duration-150 flex items-center gap-3 border-b border-gray-800 last:border-b-0"
                                         >
                                             <span className="text-base">{item.icon}</span>
                                             <span>{item.label}</span>
@@ -206,8 +206,8 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
 
                             {/* Dropdown Menu for Project Pages (placeholder) */}
                             {tab.id === 'project-pages' && showProjectPagesDropdown && (
-                                <div className="absolute top-full left-0 mt-1 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden z-50">
-                                    <div className="px-4 py-2.5 text-sm text-gray-400">
+                                <div className="absolute top-full left-0 mt-1 w-56 bg-gray-900 border border-gray-700/70 rounded-xl shadow-2xl overflow-hidden z-50 backdrop-blur-sm">
+                                    <div className="px-4 py-2.5 text-sm text-gray-500">
                                         No project pages available
                                     </div>
                                 </div>
@@ -220,7 +220,7 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
             {/* Right section */}
             <div className="flex items-center gap-3">
                 <button
-                    className="px-4 py-2 text-sm text-white hover:bg-gray-700/50 rounded transition-colors cursor-pointer flex items-center gap-1"
+                    className="px-4 py-2 text-sm text-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105'"
                 >
                     Project Actions
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
