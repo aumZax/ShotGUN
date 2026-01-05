@@ -470,7 +470,7 @@ export default function Home() {
                                 className={`w-15 h-11 flex items-center justify-center rounded transition-colors ${viewMode === 'one' ? 'bg-blue-600' : 'hover:bg-gray-700'
                                     }`}
                             >
-                                <img src="/icon/one.png" alt="view one" />
+                                <img src="/icon/one.png" alt="view one" className="max-w-6 max-h-6 object-contain"/>
                             </button>
 
                             <button
@@ -478,7 +478,7 @@ export default function Home() {
                                 className={`w-15 h-11 flex items-center justify-center rounded transition-colors ${viewMode === 'four' ? 'bg-blue-600' : 'hover:bg-gray-700'
                                     }`}
                             >
-                                <img src="/icon/four.png" alt="view four" />
+                                <img src="/icon/four.png" alt="view four" className="max-w-6 max-h-6 object-contain"/>
                             </button>
 
                             <button
@@ -486,7 +486,7 @@ export default function Home() {
                                 className={`w-15 h-11 flex items-center justify-center rounded transition-colors ${viewMode === 'three' ? 'bg-blue-600' : 'hover:bg-gray-700'
                                     }`}
                             >
-                                <img src="/icon/three.png" alt="view three" />
+                                <img src="/icon/three.png" alt="view three" className="max-w-6 max-h-6 object-contain" />
                             </button>
                         </div>
 

@@ -166,31 +166,7 @@ export default function Project_Assets() {
                         </h2>
 
                         <div className="flex items-center gap-3 mt-2">
-                            {/* View mode buttons */}
-                            <div className="flex items-center gap-1">
-                                <button className="w-15 h-11 flex items-center justify-center rounded transition-colors">
-                                    <img
-                                        src="/icon/one.png"
-                                        alt="view one"
-                                    />
-                                </button>
-
-                                <button className="w-15 h-11 flex items-center justify-center rounded transition-colors ">
-                                    <img
-                                        src="/icon/four.png"
-                                        alt="view one"
-                                    />
-                                </button>
-
-                                <button
-                                    className="w-15 h-11 flex items-center justify-center rounded transition-colors "
-                                >
-                                    <img
-                                        src="/icon/three.png"
-                                        alt="view one"
-                                    />
-                                </button>
-                            </div>
+                      
 
                             <button
                                 onClick={() => setShowCreateAsset(true)}
