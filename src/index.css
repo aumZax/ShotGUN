@@ -5,16 +5,22 @@
   font-optical-sizing: auto;
   font-style: normal;
   line-height: 1.1;
-  font-size: 13px;   /* 👈 ลดขนาดฟอนต์ทั้งเว็บ */
+  font-size: 13px;
+  /* 👈 ลดขนาดฟอนต์ทั้งเว็บ */
   font-weight: 400;
-  
+
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
- background-color: #111827;
+  background-color: #111827;
+  /* 🔥 GIF background */
+  /* background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSX7twFVDnuQJdGFWns0m7bKsKNK5tldjNBbA&s");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed; */
 
-
-    /* พื้นหลังเป็นรูป */
+  /* พื้นหลังเป็นรูป */
   /* background-image: url('/icon/black-dog.png');
   background-size: cover;
   background-position: center;
@@ -35,6 +41,7 @@ a {
   color: #ffffff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #2484e5;
 }
@@ -63,9 +70,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -76,9 +85,11 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   button {
     background-color: #f9f9f9;
   }
@@ -86,27 +97,31 @@ button:focus-visible {
 
 
 .bar-dark {
-  background-color: #232222; /* zinc-900 */
+  background-color: #232222;
+  /* zinc-900 */
 }
 
 .bar-gray {
-  background-color: #3a3939; /* zinc-900 */
+  background-color: #3a3939;
+  /* zinc-900 */
 }
 
 .bar-darkV2 {
-  background-color: #1b1a1a; /* zinc-900 */
+  background-color: #1b1a1a;
+  /* zinc-900 */
 }
 
 
 .dropDownLogOut {
-  background-color: #650a0a; /* zinc-900 */
+  background-color: #650a0a;
+  /* zinc-900 */
 }
 
 /* ===== SPACE BACKGROUND ===== */
 
 .space {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    background: radial-gradient(ellipse at bottom, #0b0d2a 0%, #000 100%);
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at bottom, #0b0d2a 0%, #000 100%);
 }

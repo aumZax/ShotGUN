@@ -98,14 +98,16 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
     }, []);
 
     const tabs = [
-        { id: 'ProDetail', label: 'Project Details' },
-        { id: 'Assets', label: 'Assets' },
-        { id: 'Shots', label: 'Shots' },
-        { id: 'Tasks', label: 'Tasks' },
-        { id: 'Media', label: 'Media' },
-        { id: 'other', label: 'Other', hasDropdown: true },
-        { id: 'project-pages', label: 'Project Pages', hasDropdown: true },
+        { id: 'ProDetail', label: 'Project Details', show: 'always' },
+        { id: 'Assets', label: 'Assets', show: 'always' },
+        { id: 'Shots', label: 'Shots', show: 'sm' },
+        { id: 'Sequence', label: 'Sequence', show: 'sm' },
+        { id: 'Tasks', label: 'Tasks', show: 'sm' },
+        { id: 'Media', label: 'Media', show: 'md' },
+        { id: 'other', label: 'Other', hasDropdown: true, show: 'lg' },
+        { id: 'project-pages', label: 'Project Pages', hasDropdown: true, show: 'lg' },
     ];
+
 
     const otherMenuItems = [
         { id: 'people', label: 'People', icon: '👤', route: '/Others_People' },
@@ -131,6 +133,7 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                 'ProDetail': '/Project_Detail',
                 'Assets': '/Project_Assets',
                 'Shots': '/Project_Shot',
+                'Sequence': '/Project_Sequence',
                 'Tasks': '/Project_Tasks',
                 'Media': '/Project_Media',
             };
@@ -146,12 +149,13 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
     };
 
 
+
     return (
-       <header className="w-full h-12 px-6 flex items-center justify-between bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 fixed z-[100] shadow-lg">
+        <header className="w-full h-12 px-6 flex items-center justify-between bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 fixed z-[100] shadow-lg ">
             {/* Left section */}
             <div className="flex items-center gap-6">
                 <div>
-                    <h2 className="font-semibold text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                    <h2 className="font-semibold text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 whitespace-nowrap">
                         {loading ? 'Loading...' : projectName.toUpperCase()}
                     </h2>
                 </div>
@@ -162,8 +166,21 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                         <div key={tab.id} className="relative" ref={tab.id === 'other' ? otherDropdownRef : tab.id === 'project-pages' ? projectPagesDropdownRef : null}>
                             <button
                                 onClick={() => handleTabClick(tab.id)}
-                                className={`px-4 py-2 text-sm rounded-lg transition-all duration-200 cursor-pointer flex items-center gap-1 relative
-                                    ${activeTab === tab.id
+                                className={` px-4 py-2 text-sm rounded-lg transition-all duration-200 whitespace-nowrap
+                                        ${
+                                            activeTab === tab.id
+                                                ? 'flex' // 👈 หน้า current แสดงเสมอ
+                                                : tab.show === 'lg'
+                                                    ? 'hidden lg:flex'
+                                                    : tab.show === 'md'
+                                                        ? 'hidden md:flex'
+                                                        : tab.show === 'sm'
+                                                            ? 'hidden sm:flex'
+                                                            : 'flex'
+                                        }
+
+
+                                        ${activeTab === tab.id
                                         ? 'text-blue-400 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105'
                                         : 'text-gray-300 bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-gray-500/30 transition-all duration-200 hover:shadow-gray-500/50 hover:scale-105'
                                     }
@@ -173,8 +190,8 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
                                 {tab.hasDropdown && (
                                     <svg
                                         className={`w-4 h-4 transition-transform duration-200 ${(tab.id === 'other' && showOtherDropdown) ||
-                                                (tab.id === 'project-pages' && showProjectPagesDropdown)
-                                                ? 'rotate-180' : ''
+                                            (tab.id === 'project-pages' && showProjectPagesDropdown)
+                                            ? 'rotate-180' : ''
                                             }`}
                                         fill="none"
                                         stroke="currentColor"
@@ -218,9 +235,9 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
             </div>
 
             {/* Right section */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 hidden md:inline-block">
                 <button
-                    className="px-4 py-2 text-sm text-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105'"
+                    className=" px-4 py-2 text-sm text-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105 whitespace-nowrap"
                 >
                     Project Actions
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar_Project from "../../components/Navbar_Project";
+import { User, } from 'lucide-react';
 
 
 export default function Others_People() {
@@ -34,7 +35,7 @@ export default function Others_People() {
         }
     ]);
 
-    const [editingCell, setEditingCell] = useState<{id: number, field: string} | null>(null);
+    const [editingCell, setEditingCell] = useState<{ id: number, field: string } | null>(null);
     const [editValue, setEditValue] = useState("");
 
     // Add People
@@ -83,8 +84,8 @@ export default function Others_People() {
 
     const handleCellBlur = () => {
         if (editingCell) {
-            setPeople(people.map(p => 
-                p.id === editingCell.id 
+            setPeople(people.map(p =>
+                p.id === editingCell.id
                     ? { ...p, [editingCell.field]: editValue }
                     : p
             ));
@@ -112,12 +113,18 @@ export default function Others_People() {
                 <Navbar_Project activeTab="other" />
             </div>
             <div className="pt-12">
-                <header className="w-full h-22 px-4 flex items-center justify-between bar-gray border-b ">
+                <header className="w-full h-22 px-4 flex items-center justify-between bar-gray border-b bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                            <h2 className="text-2xl font-normal text-gray-300">
-                                People ⭐
-                            </h2>
+
+                            <div className='flex'>
+                                <h2 className="px-2 text-2xl font-normal bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                    People
+                                </h2>
+                            <User className="w-8 h-8 text-blue-400 mr-3" />
+
+                            </div>
+
                             <span className="text-sm text-gray-400">
                                 {availableSeats}/{totalSeats} subscription seats available
                             </span>
@@ -128,35 +135,11 @@ export default function Others_People() {
                         </div>
 
                         <div className="flex items-center gap-3 mt-2">
-                             {/* View mode buttons */}
-                            <div className="flex items-center gap-1">
-                                <button className="w-15 h-11 flex items-center justify-center rounded transition-colors">
-                                    <img
-                                        src="/icon/one.png"
-                                        alt="view one"
-                                    />
-                                </button>
 
-                                <button className="w-15 h-11 flex items-center justify-center rounded transition-colors ">
-                                    <img
-                                        src="/icon/four.png"
-                                        alt="view one"
-                                    />
-                                </button>
-
-                                <button
-                                    className="w-15 h-11 flex items-center justify-center rounded transition-colors "
-                                >
-                                    <img
-                                        src="/icon/three.png"
-                                        alt="view one"
-                                    />
-                                </button>
-                            </div>
 
                             <button
                                 onClick={() => setShowCreatePerson(true)}
-                                className="px-4 h-8 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded flex items-center gap-1"
+                                className="px-4 h-8 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105"
                             >
                                 Add Person
                                 <span className="text-xs">▼</span>
@@ -168,8 +151,8 @@ export default function Others_People() {
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="Search People..."
-                                className="w-64 h-8 pl-3 pr-10 bg-gray-700 border border-gray-600 rounded text-gray-300 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                placeholder="Search Asset..."
+                                className="w-40 md:w-56 lg:w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
                             />
                         </div>
                     </div>
@@ -242,7 +225,7 @@ export default function Others_People() {
                                             )}
                                         </td>
 
-                                         {/* Status */}
+                                        {/* Status */}
                                         <td
                                             className="px-3 py-2 text-sm border-r border-gray-700 cursor-pointer"
                                             style={{ width: columnWidths[2] }}
@@ -253,8 +236,8 @@ export default function Others_People() {
                                                     value={editValue}
                                                     onChange={(e) => {
                                                         setEditValue(e.target.value);
-                                                        setPeople(people.map(person => 
-                                                            person.id === p.id 
+                                                        setPeople(people.map(person =>
+                                                            person.id === p.id
                                                                 ? { ...person, status: e.target.value }
                                                                 : person
                                                         ));
@@ -304,8 +287,8 @@ export default function Others_People() {
                                                     value={editValue}
                                                     onChange={(e) => {
                                                         setEditValue(e.target.value);
-                                                        setPeople(people.map(person => 
-                                                            person.id === p.id 
+                                                        setPeople(people.map(person =>
+                                                            person.id === p.id
                                                                 ? { ...person, permissionGroup: e.target.value }
                                                                 : person
                                                         ));
@@ -374,7 +357,7 @@ export default function Others_People() {
             </main>
 
             {/* Create Person Modal */}
-             {showCreatePerson && (
+            {showCreatePerson && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     {/* Backdrop */}
                     <div

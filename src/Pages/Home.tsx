@@ -457,7 +457,7 @@ export default function Home() {
 
     return (
         <div className="pt-14 min-h-screen m-0 p-0">
-            <header className="w-full h-22 px-4 flex items-center justify-between bg-gray-900 sticky top-0 z-40 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
+            <header className="w-full h-22 px-4 flex items-center justify-between bg-gray-900 sticky top-0 z-40 bg-gradient-to-r from-gray-00 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
                 <div className="flex flex-col">
                     <h2 className="text-3xl font-semibold text-gray-200 flex items-center gap-3">
                         Projects
@@ -527,7 +527,7 @@ export default function Home() {
                         <input
                             type="text"
                             placeholder="Search Projects..."
-                            className="w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
+                            className="w-40 md:w-56 lg:w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
                         />
                     </div>
                 </div>
@@ -618,7 +618,7 @@ export default function Home() {
                 </div>
             )}
 
-            <main className="pt-4 pb-8 px-4 md:px-6 lg:px-2">
+            <main className="pt-4 pb-8 px-4 md:px-6 lg:px-2" >
                 {loadingProjects ? (
                     <div className="flex justify-center items-center h-64">
                         <div className="text-gray-600 text-xl">Loading projects...</div>

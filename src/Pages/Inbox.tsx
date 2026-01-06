@@ -13,11 +13,11 @@ export default function Ibox() {
                     </select>
 
                     {/* Action buttons */}
-                    <button className="h-8 px-3 text-gray-300 text-sm flex items-center  bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105">
+                    <button className="hidden lg:flex h-8 px-3 text-gray-300 text-sm flex items-center  bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105">
                         Hide Read Messages
                     </button>
 
-                    <button className="h-8 px-3 text-gray-300 text-sm flex items-center  bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105">
+                    <button className="hidden lg:flex h-8 px-3 text-gray-300 text-sm flex items-center  bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105">
                         Mark All Read
                     </button>
 
@@ -36,7 +36,7 @@ export default function Ibox() {
                         <input
                             type="text"
                             placeholder="Search Inbox..."
-                            className="w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
+                            className="w-40 md:w-56 lg:w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
                     </div>

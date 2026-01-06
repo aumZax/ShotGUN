@@ -313,7 +313,7 @@ export default function ProjectShot() {
                             <input
                                 type="text"
                                 placeholder="Search Shot..."
-                                className="w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
+                                className="w-40 md:w-56 lg:w-64 h-8 pl-3 pr-10 bg-gray-800/50 border border-gray-600/50 rounded-lg text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500/80 focus:bg-gray-800/80 focus:shadow-lg focus:shadow-blue-500/20 transition-all duration-200"
                             />
                         </div>
                     </div>
@@ -328,7 +328,7 @@ export default function ProjectShot() {
                         <div key={category.category} className="bg-gray-800 rounded-xl border border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
                             <button
                                 onClick={() => toggleCategory(category.category)}
-                                className="w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-gray-500/30 transition-all duration-200 hover:shadow-gray-500/50"
+                                className="w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-700 hover:from-gray-700 hover:to-gray-600 text-white text-sm font-medium hover:shadow-gray-500/50"
                             >
                                 {expandedCategories.includes(category.category) ? (
                                     <ChevronDown className="w-4 h-4" />
@@ -345,13 +345,13 @@ export default function ProjectShot() {
                                         <div
                                             key={shot.id}
                                             onClick={() => handleShotClick(categoryIndex, shotIndex)}
-                                            className={`group cursor-pointer rounded-xl p-3 transition-all duration-300 border-2 shadow-lg hover:shadow-2xl hover:ring-2 hover:ring-purple-400 ${isSelected(categoryIndex, shotIndex)
+                                            className={`group cursor-pointer rounded-xl p-3 transition-all duration-300 border-2 shadow-lg hover:shadow-2xl hover:ring-2 hover:ring-blue-400 ${isSelected(categoryIndex, shotIndex)
                                                 ? 'border-blue-500 bg-gray-750'
                                                 : 'border-gray-400 hover:border-gray-600 hover:bg-gray-750'
                                                 }`}
                                         >
                                             {/* Thumbnail */}
-                                            <div className="relative aspect-video bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl overflow-hidden mb-3 cursor-pointer shadow-inner" onClick={() => navigate('/Project_Shot/Others_AllForOne')}>
+                                            <div className="relative aspect-video bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl overflow-hidden mb-3 cursor-pointer shadow-inner" onClick={() => navigate('/Project_Shot/Others_Shot')}>
                                                 <img
                                                     src={shot.thumbnail}
                                                     alt={shot.id}
@@ -395,29 +395,54 @@ export default function ProjectShot() {
                                                     )}
                                                 </div>
 
+                                                {/* Description Field */}
                                                 <div
-                                                    onClick={(e) => handleFieldClick('description', categoryIndex, shotIndex, e)}
+                                                    onClick={(e) =>
+                                                        handleFieldClick('description', categoryIndex, shotIndex, e)
+                                                    }
                                                     className="px-2 py-1 rounded hover:bg-gray-700 cursor-text"
                                                 >
                                                     {editingField?.categoryIndex === categoryIndex &&
                                                         editingField?.shotIndex === shotIndex &&
                                                         editingField?.field === 'description' ? (
-                                                        <input
-                                                            type="text"
+                                                        <textarea
                                                             value={shot.description}
-                                                            onChange={(e) => handleFieldChange(categoryIndex, shotIndex, 'description', e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleFieldChange(
+                                                                    categoryIndex,
+                                                                    shotIndex,
+                                                                    'description',
+                                                                    e.target.value
+                                                                )
+                                                            }
                                                             onBlur={handleFieldBlur}
                                                             onKeyDown={handleKeyDown}
                                                             autoFocus
-                                                            className="w-full text-xs text-gray-200 bg-gray-600 border border-blue-500 rounded px-1 outline-none"
+                                                            rows={4}
+                                                            className="
+                                                                    w-full
+                                                                    text-xs
+                                                                    text-gray-200
+                                                                    bg-gray-600
+                                                                    border border-blue-500
+                                                                    rounded
+                                                                    px-2 py-1
+                                                                    outline-none
+                                                                    resize-none
+                                                                    overflow-y-auto
+                                                                    leading-relaxed
+                                                                "
                                                             onClick={(e) => e.stopPropagation()}
                                                         />
                                                     ) : (
-                                                        <p className="text-xs text-gray-400 truncate">
-                                                            {shot.description}
+                                                        <p className="text-xs text-gray-400 truncate min-h-[16px]">
+                                                            {shot.description || '\u00A0'}
                                                         </p>
                                                     )}
                                                 </div>
+
+
+                                                {/* Status Field */}
 
                                                 <div className="px-2 relative">
                                                     <button
