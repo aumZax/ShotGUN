@@ -2,18 +2,19 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ENDPOINTS from "../config";
-import { supabase } from "../supabaseClient";
-
-type ViewMode = 'one' | 'four' | 'three';
+import { ChevronDown, Folder, Users } from 'lucide-react';
 
 interface Project {
     id: string;
     name: string;
     status: string;
     lastModified: string;
+    createdAt: string;
     createdBy: string;
     description: string;
     image?: string;
+    creatorUid?: string;
+    username?: string;
 }
 
 interface ProjectApiData {
@@ -21,13 +22,10 @@ interface ProjectApiData {
     id?: string;
     projectName: string;
     createdAt: string;
-    createdBy?: {
-        name?: string;
-        username?: string;
-        uid?: string;
-    };
+    createdBy?: string;
     description?: string;
     status?: string;
+    username?: string;
 }
 
 export default function Home() {
@@ -36,12 +34,12 @@ export default function Home() {
     const [showModal, setShowModal] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [selectedTemplate, setSelectedTemplate] = useState('');
-    const [viewMode, setViewMode] = useState<ViewMode>('four');
     const [loading, setLoading] = useState(false);
     const [projectData, setProjectData] = useState<Project[]>([]);
     const [loadingProjects, setLoadingProjects] = useState(true);
     const [error, setError] = useState("");
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set());
 
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean;
@@ -49,6 +47,9 @@ export default function Home() {
         y: number;
         projectId: string;
     } | null>(null);
+
+    const [showMyProjects, setShowMyProjects] = useState(true);
+    const [showSharedProjects, setShowSharedProjects] = useState(true);
 
     const templates = [
         { id: 1, name: 'Animation', subtitle: 'Template' },
@@ -61,7 +62,6 @@ export default function Home() {
         fetchProjects();
     }, []);
 
-    // เพิ่มตรงนี้
     useEffect(() => {
         const handleClickOutside = () => setContextMenu(null);
         if (contextMenu) {
@@ -84,29 +84,48 @@ export default function Home() {
     };
 
     const fetchProjectImages = async (projects: Project[]) => {
-        if (!projects.length) return;
+        if (!projects.length) {
+            console.log("⚠️ No projects to fetch images for");
+            return;
+        }
 
         try {
-            const projectIds = projects.map(p => p.id);
+            const projectIds = projects.map(p => p.id).join(',');
+            console.log("🔍 Requesting images for projects:", projectIds);
 
-            const { data } = await axios.post(ENDPOINTS.GETPROJECTIMAGES, {
-                projectIds,
+            const { data } = await axios.get(ENDPOINTS.GETPROJECTIMAGES, {
+                params: { projectIds }
             });
 
-            const images = data.images as Record<string, string>;
+            console.log("📦 Received image data:", data);
+            const imagesByProject = data.images as Record<string, Array<{ url: string }>>;
+            console.log("🖼️ Images by project:", imagesByProject);
 
             setProjectData(prev =>
-                prev.map(p =>
-                    images[p.id] && images[p.id] !== p.image
-                        ? { ...p, image: images[p.id] }
-                        : p
-                )
+                prev.map(p => {
+                    const projectImages = imagesByProject[p.id];
+                    const newImage = projectImages?.[0]?.url;
+
+                    if (newImage) {
+                        console.log(`✅ Project ${p.id} (${p.name}): Found image ${newImage}`);
+                    } else {
+                        console.log(`⚠️ Project ${p.id} (${p.name}): No image found`);
+                    }
+
+                    return newImage && newImage !== p.image
+                        ? { ...p, image: newImage }
+                        : p;
+                })
             );
 
-            console.log("✅ Project images updated:", Object.keys(images).length);
+            console.log("✅ Project images updated:", Object.keys(imagesByProject).length);
 
         } catch (err) {
             console.error("❌ Error fetching project images:", err);
+            if (axios.isAxiosError(err)) {
+                console.error("Response:", err.response?.data);
+                console.error("Status:", err.response?.status);
+            }
         }
     };
 
@@ -115,37 +134,48 @@ export default function Home() {
 
         try {
             const authUser = getAuthUser();
-            const uid =
-                authUser?.id ??
-                authUser?.uid ??
-                authUser?.username ??
-                "admin";
+            const currentUserUid = authUser?.id ?? authUser?.uid;
 
-            console.log("📋 Fetching projects for user:", uid);
+            console.log("📋 Fetching projects for user:", currentUserUid);
 
             const { data } = await axios.post<{ projects: ProjectApiData[] }>(
                 ENDPOINTS.PROJECTLIST,
-                { uid }
+                { created_by: currentUserUid }
             );
 
             console.log("📦 Raw API response:", data.projects);
 
-            const projects: Project[] = data.projects.map(p => ({
-                id: p.projectId ?? p.id ?? "",
-                name: p.projectName,
-                status: p.status ?? "Active",
-                lastModified: new Date(p.createdAt).toLocaleDateString("en-CA"),
-                createdBy: p.createdBy?.name ?? p.createdBy?.username ?? "Unknown",
-                description: p.description ?? "No description",
-                image: undefined,
-            }));
+            const allProjects: Project[] = data.projects.map(p => {
+                const creatorUid = p.createdBy;
+                return {
+                    id: p.projectId ?? p.id ?? "",
+                    name: p.projectName,
+                    status: p.status ?? "Active",
+                    lastModified: new Date(p.createdAt).toLocaleDateString("en-CA"),
+                    createdBy: p.createdBy ?? "Unknown",
+                    createdAt: p.createdAt,
+                    description: p.description ?? "No description",
+                    image: undefined,
+                    creatorUid: creatorUid,
+                    username: p.username || "",
+                };
+            });
 
-            console.log("✅ Processed projects:", projects.length);
+            console.log("✅ Processed projects:", allProjects.length);
 
-            setProjectData(projects);
+            const myProjects = allProjects.filter(p => p.creatorUid === currentUserUid);
+            const sharedProjects = allProjects.filter(p => p.creatorUid !== currentUserUid);
 
-            if (projects.length) {
-                fetchProjectImages(projects);
+            console.log(`📊 My projects: ${myProjects.length}, Shared projects: ${sharedProjects.length}`);
+
+            const sortedProjects = [...myProjects, ...sharedProjects];
+            setProjectData(sortedProjects);
+
+            if (sortedProjects.length > 0) {
+                console.log("🔄 Starting to fetch project images...");
+                await fetchProjectImages(sortedProjects);
+            } else {
+                console.log("⚠️ No projects found, skipping image fetch");
             }
 
         } catch (err) {
@@ -175,9 +205,11 @@ export default function Home() {
 
     const handleImageClick = (projectId: string, event: React.MouseEvent) => {
         event.stopPropagation();
+        if (uploadingImages.has(projectId)) {
+            return;
+        }
         fileInputRefs.current[projectId]?.click();
     };
-
 
     const handleDeleteProject = async (projectId: string) => {
         if (!projectId) {
@@ -190,11 +222,9 @@ export default function Home() {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${localStorage.getItem("token")}`, // ถ้ามี auth
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-                body: JSON.stringify({
-                    projectId,
-                }),
+                body: JSON.stringify({ projectId }),
             });
 
             const data = await res.json();
@@ -206,14 +236,8 @@ export default function Home() {
             }
 
             console.log("✅ Delete success:", data);
-
-            // ✅ ปิด modal
             setDeleteConfirm(null);
-
-            // ✅ อัปเดต UI (ลบออกจาก state)
-            setProjectData((prev) =>
-                prev.filter((p) => p.id !== projectId)
-            );
+            setProjectData((prev) => prev.filter((p) => p.id !== projectId));
 
         } catch (error) {
             console.error("❌ Network error:", error);
@@ -233,79 +257,140 @@ export default function Home() {
         }
     };
 
-    const handleTemplateSelect = (templateName: string) => {
-        setSelectedTemplate(templateName);
-        setProjectName(templateName);
-    };
-
-
-
-    const handleFileChange = async (
-        projectId: string,
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleFileChange = async (projectId: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.');
+            return;
+        }
+
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('File size exceeds 10MB limit.');
+            return;
+        }
+
+        const currentProject = projectData.find(p => p.id === projectId);
+        const oldImageUrl = currentProject?.image;
+
         console.log("📤 Starting image upload for project:", projectId);
+        console.log("📁 File details:", {
+            name: file.name,
+            type: file.type,
+            size: `${(file.size / 1024).toFixed(2)} KB`
+        });
+
+        if (oldImageUrl) {
+            console.log("🔄 Replacing old image:", oldImageUrl);
+        } else {
+            console.log("🆕 First image upload for this project");
+        }
+
+        setUploadingImages(prev => new Set(prev).add(projectId));
 
         try {
-            // สร้างชื่อไฟล์
-            const timestamp = Date.now();
-            const randomStr = Math.random().toString(36).substring(2, 8);
-            const fileExt = file.name.split('.').pop();
-            const filename = `${projectId}_${timestamp}_${randomStr}.${fileExt}`;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('projectId', projectId);
+            formData.append('type', 'images');
+            formData.append('description', 'project thumbnail');
 
-            console.log("📤 Uploading to Supabase Storage:", filename);
-
-            // อัปโหลดไปยัง Supabase Storage
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from("project_images")
-                .upload(filename, file, {
-                    cacheControl: "3600",
-                    upsert: false,
-                    contentType: file.type
-                });
-
-            if (uploadError) {
-                console.error("❌ Upload error:", uploadError);
-                throw new Error(`Upload failed: ${uploadError.message}`);
+            if (oldImageUrl) {
+                formData.append('oldImageUrl', oldImageUrl);
+                console.log("📤 Sending oldImageUrl to backend for deletion");
             }
 
-            console.log("✅ Upload successful:", uploadData);
+            console.log("📤 Uploading file to server...");
+            console.log("📍 Endpoint:", ENDPOINTS.UPLOAD);
 
-            // ดึง public URL
-            const { data: urlData } = supabase.storage
-                .from("project_images")
-                .getPublicUrl(filename);
+            const { data } = await axios.post(ENDPOINTS.UPLOAD, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.total) {
+                        const percentCompleted = Math.round(
+                            (progressEvent.loaded * 100) / progressEvent.total
+                        );
+                        console.log(`📊 Upload progress: ${percentCompleted}%`);
+                    }
+                }
+            });
 
-            const downloadURL = urlData.publicUrl;
-            console.log("✅ Image URL:", downloadURL);
+            console.log("📦 Server response:", data);
 
-            // ⚡ Update UI ทันที
+            const downloadURL = data.file?.fileUrl;
+
+            if (!downloadURL) {
+                throw new Error("No download URL returned from server");
+            }
+
+            console.log("✅ Image URL received:", downloadURL);
+
+            if (oldImageUrl) {
+                console.log("✅ Old image successfully replaced and deleted from server");
+            }
+
             setProjectData(prev =>
                 prev.map(p =>
-                    p.id === projectId && p.image !== downloadURL
+                    p.id === projectId
                         ? { ...p, image: downloadURL }
                         : p
                 )
             );
 
-            // 🔄 Sync backend (บันทึกลง files_project table)
-            await axios.post(ENDPOINTS.UPLOAD, {
-                projectId,
-                downloadURL,
-                filename,
-                storagePath: filename,
-                type: "images",
-                description: "project thumbnail",
-            });
+            console.log("✅ UI updated with new image");
 
-            console.log("✅ Image uploaded and saved to database");
+            setTimeout(async () => {
+                console.log("🔄 Re-fetching image from database to confirm...");
+                const currentProject = projectData.find(p => p.id === projectId);
+                if (currentProject) {
+                    await fetchProjectImages([currentProject]);
+                }
+            }, 1000);
+
+            if (fileInputRefs.current[projectId]) {
+                fileInputRefs.current[projectId]!.value = '';
+            }
 
         } catch (err) {
             console.error("❌ Upload error:", err);
-            alert("Failed to upload image. Please try again.");
+
+            let errorMessage = "Failed to upload image. Please try again.";
+
+            if (axios.isAxiosError(err)) {
+                console.error("❌ Axios error details:", {
+                    message: err.message,
+                    response: err.response?.data,
+                    status: err.response?.status,
+                    code: err.code
+                });
+
+                if (err.response?.data?.message) {
+                    errorMessage = err.response.data.message;
+                } else if (err.response?.status === 413) {
+                    errorMessage = "File too large. Maximum size is 10MB.";
+                } else if (err.code === "ERR_NETWORK" || err.message === "Network Error") {
+                    errorMessage = "Cannot connect to server. Please check if the server is running.";
+                } else if (err.code === "ECONNREFUSED") {
+                    errorMessage = "Connection refused. Server may not be running.";
+                }
+            }
+
+            alert(errorMessage);
+
+            if (fileInputRefs.current[projectId]) {
+                fileInputRefs.current[projectId]!.value = '';
+            }
+        } finally {
+            setUploadingImages(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(projectId);
+                return newSet;
+            });
         }
     };
 
@@ -313,11 +398,15 @@ export default function Home() {
         const projectId = project.id;
         if (!projectId) return;
 
-        console.log("🔍 Opening project:", projectId);
+        localStorage.setItem("projectId", JSON.stringify(projectId));
+        console.log(localStorage.getItem("projectId"));
 
         const baseData = {
             projectId,
             projectName: project.name,
+            thumbnail: project.image || "",
+            createdBy: project.username || "",
+            createdAt: project.createdAt || "",
             fetchedAt: new Date().toISOString(),
         };
 
@@ -354,10 +443,23 @@ export default function Home() {
         navigate("/Project_Detail");
     };
 
+    const handleTemplateSelect = (templateName: string) => {
+        setSelectedTemplate(templateName);
+        if (!projectName) {
+            setProjectName(templateName);
+        }
+    };
+
     const handleCreateProject = async () => {
         const finalProjectName = projectName || selectedTemplate;
+
         if (!finalProjectName) {
             setError("Please enter Project Name or select a template");
+            return;
+        }
+
+        if (!selectedTemplate) {
+            setError("Please select a template");
             return;
         }
 
@@ -365,12 +467,8 @@ export default function Home() {
         setError("");
 
         const authUser = getAuthUser();
-        const createdBy = authUser
-            ? {
-                uid: authUser.id ?? authUser.uid ?? authUser.username ?? "admin",
-                name: authUser.username ?? authUser.name ?? "admin",
-            }
-            : { uid: "admin", name: "admin" };
+        const createdBy = authUser.id || authUser.uid;
+
 
         console.log("🆕 Creating project:", finalProjectName, "by", createdBy.name);
 
@@ -387,6 +485,7 @@ export default function Home() {
             if (data.token) localStorage.setItem("token", data.token);
 
             const projectId = data.project?.projectId ?? data.projectId;
+            localStorage.setItem("projectId", String(projectId));
             if (!projectId) {
                 console.error("❌ No project ID in response:", data);
                 throw new Error("Project ID not found in response");
@@ -394,9 +493,13 @@ export default function Home() {
 
             console.log("✅ New project ID:", projectId);
 
+            const authUser = getAuthUser();
             const baseProjectData = {
                 projectId,
                 projectName: finalProjectName,
+                thumbnail: "", // ยังไม่มี thumbnail ตอนสร้างใหม่
+                createdBy: authUser?.username || authUser?.name || "Unknown", // เพิ่มชื่อผู้สร้าง
+                createdAt: new Date().toISOString(), // เพิ่มวันที่สร้าง
                 fetchedAt: new Date().toISOString(),
             };
 
@@ -430,7 +533,6 @@ export default function Home() {
             setProjectName("");
             setSelectedTemplate("");
 
-            // Refresh project list
             await fetchProjects();
 
             console.log("🎉 Navigating to project detail");
@@ -446,18 +548,136 @@ export default function Home() {
         } finally {
             setLoading(false);
         }
+    };
 
-        // const [contextMenu, setContextMenu] = useState<{
-        //     visible: boolean;
-        //     x: number;
-        //     y: number;
-        //     projectId: string;
-        // } | null>(null);
+    const renderProjectCard = (project: Project, isMember: boolean) => {
+        const isUploading = uploadingImages.has(project.id);
+
+        return (
+            <div
+                key={project.id}
+                onContextMenu={(e) => handleContextMenu(e, project.id)}
+                className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] border-2 ${isMember ? 'border-purple-300' : 'border-blue-300'
+                    }`}
+            >
+                <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    className="hidden"
+                    ref={(el) => {
+                        fileInputRefs.current[project.id] = el;
+                    }}
+                    onChange={(e) => handleFileChange(project.id, e)}
+                    disabled={isUploading}
+                />
+
+                <div
+                    onClick={(e) => handleImageClick(project.id, e)}
+                    className={`h-56 md:h-64 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center relative group ${isUploading ? 'cursor-wait' : 'cursor-pointer hover:brightness-110'
+                        } transition-all duration-300`}
+                >
+                    {project.image ? (
+                        <>
+                            <img
+                                src={project.image}
+                                className="absolute inset-0 w-full h-full object-cover blur-sm scale-110 opacity-40"
+                                alt=""
+                            />
+
+                            {/* Overlay - เพิ่มความเข้มเพื่อให้ตัวหนังสือชัดขึ้น */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-gray-900/60" />
+                            <img
+                                src={project.image}
+                                alt={project.name}
+                                className="relative mx-auto h-full object-contain opacity-90"
+                                onError={(e) => {
+                                    console.error("❌ Image load error for project:", project.id, project.image);
+                                    e.currentTarget.style.display = 'none';
+                                }}
+                                onLoad={() => {
+                                    console.log("✅ Image loaded successfully for project:", project.id);
+                                }}
+                            />
+                            {isUploading ? (
+                                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center backdrop-blur-sm">
+                                    <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-3"></div>
+                                    <span className="text-white text-base font-semibold">Uploading...</span>
+                                </div>
+                            ) : (
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                    <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                        <span className="text-gray-800 text-sm font-semibold flex items-center gap-2">
+                                            <span className="text-lg">📷</span>
+                                            Click to change
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {isUploading ? (
+                                <div className="flex flex-col items-center">
+                                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                                    <span className="text-gray-700 text-base font-semibold">Uploading...</span>
+                                </div>
+                            ) : (
+                                <div className="text-center transform group-hover:scale-110 transition-transform duration-300 ">
+                                    <div className="text-6xl mb-2 animate-pulse">📷</div>
+                                    <span className="text-gray-600 text-sm font-medium">Click to upload</span>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                <div
+                    onClick={() => handleProjectClick(project)}
+                    className="p-4 cursor-pointer hover:bg-gradient-to-br hover:from-gray-50 hover:to-blue-50 transition-all duration-300"
+                >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="text-gray-800 text-lg font-bold truncate flex-1 hover:text-blue-600 transition-colors">
+                            {project.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span
+                                className={`px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm ${project.status === 'Active'
+                                    ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white'
+                                    : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
+                                    }`}
+                            >
+                                {project.status}
+                            </span>
+                            {isMember && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-400 to-pink-500 text-white shadow-sm">
+                                    👥
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-2 line-clamp-2 leading-relaxed">
+                        {project.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                            <span className="text-gray-400">👤</span>
+                            <span className="truncate max-w-[120px]">{project.username}</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-400">
+                            <span>🕒</span>
+                            <span className="truncate">{project.lastModified}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     return (
-        <div className="pt-14 min-h-screen m-0 p-0">
-            <header className="w-full h-22 px-4 flex items-center justify-between bg-gray-900 sticky top-0 z-40 bg-gradient-to-r from-gray-00 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
+        <div className="pt-14 h-screen flex flex-col">
+            <header className="w-full h-22 px-4 flex items-center justify-between  fixed z-[50] bg-gray-900 z-40 bg-gradient-to-r from-gray-00 via-gray-800 to-gray-900 border-b border-gray-700/50 backdrop-blur-sm shadow-lg">
                 <div className="flex flex-col">
                     <h2 className="text-3xl font-semibold text-gray-200 flex items-center gap-3">
                         Projects
@@ -466,58 +686,13 @@ export default function Home() {
                         </span>
                     </h2>
 
-
                     <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setViewMode('one')}
-                                className={`w-16 h-11 flex items-center justify-center rounded-lg
-                                    bg-gradient-to-r from-blue-600 to-blue-500
-                                    hover:from-blue-700 hover:to-blue-600
-                                    text-white shadow-lg shadow-blue-500/30
-                                    transition-all duration-200
-                                    hover:shadow-blue-500/50 hover:scale-105
-                                    ${viewMode === 'one' ? '' : 'hover:bg-gray-700'}`}
-
-                            >
-                                <img src="/icon/one.png" alt="view one" className="max-w-6 max-h-6 object-contain" />
-                            </button>
-
-                            <button
-                                onClick={() => setViewMode('four')}
-                                className={`w-16 h-11 flex items-center justify-center rounded-lg
-                                        bg-gradient-to-r from-blue-600 to-blue-500
-                                        hover:from-blue-700 hover:to-blue-600
-                                        text-white shadow-lg shadow-blue-500/30
-                                        transition-all duration-200
-                                        hover:shadow-blue-500/50 hover:scale-105
-                                        ${viewMode === 'four' ? 'bg-blue-600' : 'hover:bg-gray-700'
-                                    }`}
-                            >
-                                <img src="/icon/four.png" alt="view four" className="max-w-6 max-h-6 object-contain" />
-                            </button>
-
-                            <button
-                                onClick={() => setViewMode('three')}
-                                className={`w-16 h-11 flex items-center justify-center rounded-lg
-                                        bg-gradient-to-r from-blue-600 to-blue-500
-                                        hover:from-blue-700 hover:to-blue-600
-                                        text-white shadow-lg shadow-blue-500/30
-                                        transition-all duration-200
-                                        hover:shadow-blue-500/50 hover:scale-105
-                                        ${viewMode === 'three' ? 'bg-blue-600' : 'hover:bg-gray-700'
-                                    }`}
-                            >
-                                <img src="/icon/three.png" alt="view three" className="max-w-6 max-h-6 object-contain" />
-                            </button>
-                        </div>
-
                         <button
                             onClick={() => setShowModal(true)}
                             className="px-4 h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center gap-1 shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105"
                         >
                             Add Project
-                            <span className="text-xs">▼</span>
+                            <ChevronDown />
                         </button>
                     </div>
                 </div>
@@ -537,9 +712,7 @@ export default function Home() {
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
                     <div className="w-full max-w-4xl max-h-[90vh] overflow-auto bg-gray-800 rounded-lg shadow-2xl">
                         <div className="border-b border-gray-700 p-6">
-                            <h2 className="text-2xl font-semibold text-white">
-                                Create New Project
-                            </h2>
+                            <h2 className="text-2xl font-semibold text-white">Create New Project</h2>
                         </div>
 
                         <div className="p-6">
@@ -554,6 +727,7 @@ export default function Home() {
                                 placeholder="Enter your project name..."
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
+                                maxLength={40}
                                 className="w-full px-4 py-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none mb-6"
                             />
 
@@ -607,8 +781,8 @@ export default function Home() {
                                 </button>
                                 <button
                                     onClick={handleCreateProject}
-                                    disabled={loading}
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                                    disabled={loading || !selectedTemplate}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {loading ? "Creating..." : "Create Project"}
                                 </button>
@@ -617,11 +791,15 @@ export default function Home() {
                     </div>
                 </div>
             )}
+            <div className="h-22"></div>
 
-            <main className="pt-4 pb-8 px-4 md:px-6 lg:px-2" >
+            <main className=" flex-1 overflow-y-auto overflow-x-hidden pt-4 pb-8 px-4 md:px-6 lg:px-2">
                 {loadingProjects ? (
                     <div className="flex justify-center items-center h-64">
-                        <div className="text-gray-600 text-xl">Loading projects...</div>
+                        <div className="text-gray-400 text-xl flex items-center gap-3">
+                            <div className="w-8 h-8 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+                            Loading projects...
+                        </div>
                     </div>
                 ) : projectData.length === 0 ? (
                     <div className="flex justify-center items-center h-64">
@@ -629,227 +807,80 @@ export default function Home() {
                     </div>
                 ) : (
                     <>
-                        {viewMode === 'four' && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                                {projectData.map((project) => (
-                                    <div
-                                        key={project.id}
-                                        onContextMenu={(e) => handleContextMenu(e, project.id)}
-                                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                                    >
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            ref={(el) => {
-                                                fileInputRefs.current[project.id] = el;
-                                            }}
-                                            onChange={(e) => handleFileChange(project.id, e)}
-                                        />
+                        {(() => {
+                            const authUser = getAuthUser();
+                            const currentUserUid = authUser?.id ?? authUser?.uid ?? authUser?.username ?? "admin";
+                            const myProjects = projectData.filter(p => p.creatorUid === currentUserUid);
+                            const sharedProjects = projectData.filter(p => p.creatorUid !== currentUserUid);
 
-                                        <div
-                                            onClick={(e) => handleImageClick(project.id, e)}
-                                            className="h-40 bg-gray-300 flex items-center justify-center cursor-pointer hover:bg-gray-400 transition-colors relative group"
-                                        >
-                                            {project.image ? (
-                                                <>
-                                                    <img
-                                                        src={project.image}
-                                                        alt={project.name}
-                                                        className="h-full w-full object-cover"
+                            return (
+                                <>
+                                    {myProjects.length > 0 && (
+                                        <div className="mb-8">
+                                            <button
+                                                className="w-full flex items-center justify-between p-4 mb-4 cursor-pointer group bg-gradient-to-r from-orange-600 to-purple-400 hover:from-orange-600 hover:to-purple-400 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform"
+                                                onClick={() => setShowMyProjects(!showMyProjects)}
+                                            >
+                                                <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                                                    <ChevronDown
+                                                        className={`transition-transform duration-300 ${showMyProjects ? 'rotate-0' : '-rotate-90'}`}
+                                                        size={24}
                                                     />
-                                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                        <span className="text-white text-sm">
-                                                            Click to change
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <span className="text-gray-600">
-                                                    Click to upload image
+                                                    <Folder />
+                                                    <span>My Projects</span>
+                                                    <span className="ml-2 px-3 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                                                        {myProjects.length}
+                                                    </span>
+                                                </h3>
+                                                <span className="text-white/80 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    Click to {showMyProjects ? 'hide' : 'show'}
                                                 </span>
+                                            </button>
+                                            {showMyProjects && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                                                    {myProjects.map((project) => renderProjectCard(project, false))}
+                                                </div>
                                             )}
                                         </div>
+                                    )}
 
-                                        <div
-                                            onClick={() => handleProjectClick(project)}
-                                            className="p-4 cursor-pointer hover:bg-gray-50 transition"
-                                        >
-                                            <h3 className="text-gray-700 text-xl font-semibold mb-2">
-                                                {project.name}
-                                            </h3>
-
-                                            <div className="mb-2">
-                                                <span
-                                                    className={`px-2 py-1 rounded text-xs font-medium ${project.status === 'Active'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
-                                                        }`}
-                                                >
-                                                    {project.status}
+                                    {sharedProjects.length > 0 && (
+                                        <div>
+                                            <button
+                                                className="w-full flex items-center justify-between p-4 mb-4 cursor-pointer group bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform "
+                                                onClick={() => setShowSharedProjects(!showSharedProjects)}
+                                            >
+                                                <h3 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                                                    <ChevronDown
+                                                        className={`transition-transform duration-300 ${showSharedProjects ? 'rotate-0' : '-rotate-90'}`}
+                                                        size={24}
+                                                    />
+                                                    <Users />
+                                                    <span>Shared with Me</span>
+                                                    <span className="ml-2 px-3 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                                                        {sharedProjects.length}
+                                                    </span>
+                                                </h3>
+                                                <span className="text-white/80 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    Click to {showSharedProjects ? 'hide' : 'show'}
                                                 </span>
-                                            </div>
-
-                                            <p className="text-gray-600 text-sm mb-2">
-                                                {project.description}
-                                            </p>
-
-                                            <p className="text-gray-500 text-xs">
-                                                Owner: {project.createdBy}
-                                            </p>
-                                            <p className="text-gray-500 text-xs">
-                                                Modified: {project.lastModified}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {viewMode === 'three' && (
-                            <div className="bg-white rounded-lg shadow overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full border-collapse">
-                                        <thead>
-                                            <tr className="bg-gray-800 text-white">
-                                                <th className="border border-gray-600 px-4 py-3 text-left font-semibold">
-                                                    Project Name
-                                                </th>
-                                                <th className="border border-gray-600 px-4 py-3 text-left font-semibold">
-                                                    Status
-                                                </th>
-                                                <th className="border border-gray-600 px-4 py-3 text-left font-semibold">
-                                                    Last Modified
-                                                </th>
-                                                <th className="border border-gray-600 px-4 py-3 text-left font-semibold">
-                                                    Owner
-                                                </th>
-                                                <th className="border border-gray-600 px-4 py-3 text-left font-semibold">
-                                                    Description
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {projectData.map((project, index) => (
-                                                <tr
-                                                    key={project.id}
-                                                    onClick={() => handleProjectClick(project)}
-                                                    className={`hover:bg-gray-100 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                                                        }`}
-                                                >
-                                                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                                                        {project.name}
-                                                    </td>
-                                                    <td className="border border-gray-300 px-4 py-3">
-                                                        <span className={`px-2 py-1 rounded text-xs font-medium ${project.status === 'Active'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-yellow-100 text-yellow-800'
-                                                            }`}>
-                                                            {project.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                                                        {project.lastModified}
-                                                    </td>
-                                                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                                                        {project.createdBy}
-                                                    </td>
-                                                    <td className="border border-gray-300 px-4 py-3 text-gray-600 text-sm">
-                                                        {project.description}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        )}
-
-                        {viewMode === 'one' && (
-                            <div className="flex flex-col gap-6">
-                                {projectData.map((project) => (
-                                    <div
-                                        key={project.id}
-                                        className="w-full max-w-4xl mx-auto"
-                                    >
-                                        <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                ref={(el) => {
-                                                    fileInputRefs.current[project.id] = el;
-                                                }}
-                                                onChange={(e) => handleFileChange(project.id, e)}
-                                            />
-
-                                            <div
-                                                onClick={(e) => handleImageClick(project.id, e)}
-                                                className="h-64 bg-gray-300 flex items-center justify-center cursor-pointer relative group"
-                                            >
-                                                {project.image ? (
-                                                    <>
-                                                        <img
-                                                            src={project.image}
-                                                            alt={project.name}
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                                            <span className="text-white text-lg">
-                                                                Click to change
-                                                            </span>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <span className="text-gray-600 text-xl">
-                                                        Click to upload image
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div
-                                                onClick={() => handleProjectClick(project)}
-                                                className="p-6 cursor-pointer hover:bg-gray-50 transition"
-                                            >
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <h2 className="text-gray-700 text-3xl font-semibold">
-                                                        {project.name}
-                                                    </h2>
-                                                    <span
-                                                        className={`px-3 py-1 rounded text-sm font-medium ${project.status === 'Active'
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-yellow-100 text-yellow-800'
-                                                            }`}
-                                                    >
-                                                        {project.status}
-                                                    </span>
+                                            </button>
+                                            {showSharedProjects && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                                                    {sharedProjects.map((project) => renderProjectCard(project, true))}
                                                 </div>
-
-                                                <p className="text-gray-600 mb-4 text-lg">
-                                                    {project.description}
-                                                </p>
-
-                                                <div className="flex gap-6 text-gray-500">
-                                                    <p>
-                                                        <span className="font-medium">Owner:</span>{' '}
-                                                        {project.createdBy}
-                                                    </p>
-                                                    <p>
-                                                        <span className="font-medium">Last Modified:</span>{' '}
-                                                        {project.lastModified}
-                                                    </p>
-                                                </div>
-                                            </div>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    )}
+                                </>
+                            );
+                        })()}
                     </>
                 )}
+
                 {contextMenu && (
                     <div
-                        className="fixed rounded py-1 z-50 min-w-[150px]"
+                        className="fixed py-1 z-50 min-w-[150px]"
                         style={{
                             left: `${contextMenu.x}px`,
                             top: `${contextMenu.y}px`
@@ -868,80 +899,44 @@ export default function Home() {
 
                 {deleteConfirm && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center">
-                        {/* Overlay */}
                         <div
                             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
                             onClick={() => setDeleteConfirm(null)}
                         />
 
-                        {/* Modal */}
-                        <div className="
-            relative w-full max-w-md mx-4
-            rounded-2xl
-            bg-zinc-900
-            border border-zinc-700
-            shadow-2xl
-            animate-in fade-in zoom-in-95
-        ">
+                        <div className="relative w-full max-w-md mx-4 rounded-2xl bg-zinc-900 border border-zinc-700 shadow-2xl animate-in fade-in zoom-in-95">
                             <div className="p-6">
-                                {/* Header */}
                                 <div className="flex items-start gap-4 mb-6">
-                                    <div className="
-                        w-12 h-12 rounded-full
-                        bg-red-500/15
-                        flex items-center justify-center
-                    ">
-                                        <img
-                                            src="/icon/warning.png"
-                                            alt="warning"
-                                            className="w-9 h-9"
-                                        />
+                                    <div className="w-12 h-12 rounded-full bg-red-500/15 flex items-center justify-center">
+                                        <span className="text-3xl">⚠️</span>
                                     </div>
 
                                     <div>
-                                        <h3 className="text-lg font-semibold text-zinc-100">
-                                            Delete Project
-                                        </h3>
-                                        <p className="text-sm text-zinc-400">
-                                            This action cannot be undone.
-                                        </p>
+                                        <h3 className="text-lg font-semibold text-zinc-100">Delete Project</h3>
+                                        <p className="text-sm text-zinc-400">This action cannot be undone.</p>
                                     </div>
                                 </div>
 
-                                {/* Content */}
                                 <div className="rounded-lg bg-zinc-800 p-4 mb-6 border border-zinc-700">
                                     <p className="text-zinc-300 mb-1">
                                         Are you sure you want to delete this project?
                                     </p>
                                     <p className="font-semibold text-zinc-100 truncate">
-                                        “{deleteConfirm.projectName}”
+                                        "{deleteConfirm.projectName}"
                                     </p>
                                 </div>
 
-                                {/* Actions */}
                                 <div className="flex justify-end gap-3">
                                     <button
                                         onClick={() => setDeleteConfirm(null)}
-                                        className="
-                            px-4 py-2 rounded-lg
-                            bg-zinc-700/60
-                            text-zinc-200
-                            hover:bg-zinc-700
-                            transition-colors font-medium
-                        "
+                                        className="px-4 py-2 rounded-lg bg-zinc-700/60 text-zinc-200 hover:bg-zinc-700 transition-colors font-medium"
                                     >
                                         Cancel
                                     </button>
 
                                     <button
                                         onClick={() => handleDeleteProject(deleteConfirm.projectId)}
-                                        className="
-                            px-4 py-2 rounded-lg
-                            bg-red-600
-                            text-white
-                            hover:bg-red-700
-                            transition-colors font-medium
-                        "
+                                        className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
                                     >
                                         Delete Project
                                     </button>
@@ -950,8 +945,6 @@ export default function Home() {
                         </div>
                     </div>
                 )}
-
-
             </main>
         </div>
     );

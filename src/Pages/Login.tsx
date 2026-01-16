@@ -10,7 +10,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async () => {
+    const handleLogin = async () => {
     if (!identifier || !password) {
       setError("Please enter username/email and password");
       return;
@@ -30,15 +30,17 @@ export default function Login() {
       // เก็บข้อมูล user
       const user = data.user;
       if (!user) throw new Error("Invalid login response");
+      console.log("✅ Logged in user:", user);
 
-      // บันทึกลง localStorage
-      localStorage.setItem("token", data.token ?? "dummy-token");
+      localStorage.clear();
+
+
       localStorage.setItem("authUser", JSON.stringify({
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
-        avatarURL: user.avatarURL,
+        imageURL: user.imageURL, 
       }));
 
       console.log("✅ Login successful, navigating to /Home");
@@ -47,7 +49,8 @@ export default function Login() {
     } catch (err) {
       console.error("❌ Login error:", err);
       if (axios.isAxiosError(err)) {
-        const errorMsg = err.response?.data?.error || "Login failed";
+        // API ส่ง error message กลับมา
+        const errorMsg = err.response?.data?.message || "Login failed";
         setError(errorMsg);
       } else {
         setError("Invalid username/email or password");
@@ -56,7 +59,6 @@ export default function Login() {
       setLoading(false);
     }
   };
-
   /* ---------- styles ---------- */
   const contentStyle: React.CSSProperties = {
     minHeight: "100vh",

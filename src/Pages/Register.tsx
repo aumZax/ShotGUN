@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
 import ENDPOINTS from "../config";
 
 export default function Register() {
@@ -16,18 +15,17 @@ export default function Register() {
 
   const [showAvatarModal, setShowAvatarModal] = useState<boolean>(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string>("");
-  const [uploadingAvatar, setUploadingAvatar] = useState<boolean>(false);
 
-  const defaultAvatars: string[] = [
-    "/avartar/avartar1.jpg",
-    "/avartar/avartar2.jpg",
-    "/avartar/avartar3.jpg",
-    "/avartar/avartar4.jpg",
-    "/avartar/avartar5.jpg",
-    "/avartar/avartar6.jpg",
-    "/avartar/avartar7.jpg",
-    "/avartar/avartar8.jpg",
-    "/avartar/avartar9.jpg",
+  const defaultAvatars = [
+    { id: "avatar1", src: "/avartar/avartar1.jpg" },
+    { id: "avatar2", src: "/avartar/avartar2.jpg" },
+    { id: "avatar3", src: "/avartar/avartar3.jpg" },
+    { id: "avatar4", src: "/avartar/avartar4.jpg" },
+    { id: "avatar5", src: "/avartar/avartar5.jpg" },
+    { id: "avatar6", src: "/avartar/avartar6.jpg" },
+    { id: "avatar7", src: "/avartar/avartar7.jpg" },
+    { id: "avatar8", src: "/avartar/avartar8.jpg" },
+    { id: "avatar9", src: "/avartar/avartar9.jpg" },
   ];
 
   const validateEmail = (email: string): boolean => {
@@ -36,7 +34,6 @@ export default function Register() {
   };
 
   const handleRegisterClick = (): void => {
-    // Clear previous errors
     setError("");
 
     // Validation
@@ -64,6 +61,43 @@ export default function Register() {
     setShowAvatarModal(true);
   };
 
+  // ฟังก์ชัน upload avatar ไปที่ API ก่อน
+  const uploadAvatarToServer = async (avatarSrc: string): Promise<string> => {
+    try {
+      console.log("📤 Uploading avatar from:", avatarSrc);
+
+      // ดึงไฟล์จาก public folder
+      const response = await fetch(avatarSrc);
+      const blob = await response.blob();
+      const fileName = avatarSrc.split('/').pop() || 'avatar.jpg';
+      const file = new File([blob], fileName, { type: blob.type });
+
+      // สร้าง FormData
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      // เรียก API upload
+      const uploadResponse = await axios.post(
+        ENDPOINTS.UPLOAD_AVATAR,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      console.log("✅ Avatar uploaded successfully:", uploadResponse.data);
+      
+      // ได้ imageURL กลับมา เช่น "uploads/avatars/xxx.jpg"
+      return uploadResponse.data.imageURL;
+
+    } catch (err) {
+      console.error("❌ Avatar upload failed:", err);
+      throw new Error("Failed to upload avatar. Please try again.");
+    }
+  };
+
   const handleAvatarConfirm = async (): Promise<void> => {
     if (!selectedAvatar) {
       setError("Please select an avatar");
@@ -71,65 +105,35 @@ export default function Register() {
     }
 
     try {
-      setUploadingAvatar(true);
       setLoading(true);
       setError("");
 
-      console.log("📥 Fetching avatar from:", selectedAvatar);
-
-      // Download avatar file
-      const response = await fetch(selectedAvatar);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch avatar: ${response.statusText}`);
-      }
-      
-      const blob = await response.blob();
-      console.log("✅ Avatar blob created:", blob.size, "bytes");
-
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 8);
-      const fileExtension = selectedAvatar.split('.').pop() || 'jpg';
-      const filename = `${username}_${timestamp}_${randomStr}.${fileExtension}`;
-
-      console.log("📤 Uploading avatar to Supabase Storage...");
-      
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("user_avartars")
-        .upload(filename, blob, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: blob.type || "image/jpeg"
-        });
-
-      if (uploadError) {
-        console.error("❌ Upload error:", uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
+      // หา src ของ avatar ที่เลือก
+      const selectedAvatarObj = defaultAvatars.find(av => av.id === selectedAvatar);
+      if (!selectedAvatarObj) {
+        throw new Error("Avatar not found");
       }
 
-      console.log("✅ Upload successful:", uploadData);
+      console.log("📝 Selected avatar:", selectedAvatarObj.src);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("user_avartars")
-        .getPublicUrl(filename);
+      // ขั้นตอนที่ 1: Upload avatar ไปที่ API ก่อน
+      const uploadedImageURL = await uploadAvatarToServer(selectedAvatarObj.src);
+      console.log("✅ Got imageURL from API:", uploadedImageURL);
 
-      const avatarURL = urlData.publicUrl;
-      console.log("✅ Avatar URL:", avatarURL);
-
-      // Prepare registration data
+      // ขั้นตอนที่ 2: Register ด้วย imageURL ที่ได้จาก API
       const registrationData = {
-        email: email.trim().toLowerCase(),
         username: username.trim(),
+        email: email.trim().toLowerCase(),
         password: password,
         role: role,
-        avartarURL: avatarURL, 
-        
+        imageURL: uploadedImageURL, // ใช้ URL ที่ได้จาก API upload
       };
 
       console.log("📝 Registering user with data:", {
-        ...registrationData,
+        username: registrationData.username,
+        email: registrationData.email,
+        role: registrationData.role,
+        imageURL: registrationData.imageURL,
         password: "***hidden***"
       });
 
@@ -141,13 +145,12 @@ export default function Register() {
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 10000, // 10 second timeout
+          timeout: 10000,
         }
       );
 
       console.log("✅ Registration successful!", registerResponse.data);
       
-      // Success
       alert("Registration successful! Please login.");
       navigate("/");
       
@@ -157,22 +160,18 @@ export default function Register() {
       let errorMessage = "Registration failed. Please try again.";
       
       if (axios.isAxiosError(err)) {
-        // Handle Axios errors
         if (err.response) {
-          // Server responded with error
           const status = err.response.status;
           const data = err.response.data;
           
           console.error("Response status:", status);
           console.error("Response data:", data);
           
-          // Extract error message
           errorMessage = data?.message 
             || data?.error 
             || data?.msg
             || `Server error (${status})`;
           
-          // Handle specific error cases
           if (status === 409 || errorMessage.toLowerCase().includes('already exists')) {
             errorMessage = "Email or username already exists";
           } else if (status === 400) {
@@ -181,11 +180,9 @@ export default function Register() {
             errorMessage = "Server error. Please try again later or contact support.";
           }
         } else if (err.request) {
-          // Request made but no response
           console.error("No response received:", err.request);
           errorMessage = "No response from server. Check your connection.";
         } else {
-          // Error in request setup
           errorMessage = err.message || "Failed to send registration request";
         }
       } else if (err instanceof Error) {
@@ -194,19 +191,17 @@ export default function Register() {
       
       setError(errorMessage);
       
-      // Only close modal if it's not a server error (user can retry)
       if (!errorMessage.includes("Server error")) {
         setShowAvatarModal(false);
       }
       
     } finally {
-      setUploadingAvatar(false);
       setLoading(false);
     }
   };
 
   const handleModalClose = (): void => {
-    if (!uploadingAvatar) {
+    if (!loading) {
       setShowAvatarModal(false);
       setSelectedAvatar("");
       setError("");
@@ -423,7 +418,7 @@ export default function Register() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
-            {!uploadingAvatar && (
+            {!loading && (
               <button
                 onClick={handleModalClose}
                 style={{
@@ -479,39 +474,37 @@ export default function Register() {
             >
               {defaultAvatars.map((avatar, index) => (
                 <div
-                  key={index}
-                  onClick={() => !uploadingAvatar && setSelectedAvatar(avatar)}
+                  key={avatar.id}
+                  onClick={() => !loading && setSelectedAvatar(avatar.id)}
                   style={{
-                    cursor: uploadingAvatar ? "not-allowed" : "pointer",
+                    cursor: loading ? "not-allowed" : "pointer",
                     borderRadius: "50%",
                     overflow: "hidden",
                     border:
-                      selectedAvatar === avatar
+                      selectedAvatar === avatar.id
                         ? "4px solid rgba(2, 120, 247, 1)"
                         : "4px solid rgba(255,255,255,0.1)",
                     aspectRatio: "1",
                     transition: "transform 0.2s, border-color 0.2s",
-                    transform: selectedAvatar === avatar ? "scale(1.05)" : "scale(1)",
+                    transform: selectedAvatar === avatar.id ? "scale(1.05)" : "scale(1)",
                   }}
                   onMouseEnter={(e) => {
-                    if (!uploadingAvatar) {
-                      e.currentTarget.style.transform = "scale(1.05)";
-                    }
+                    if (!loading) e.currentTarget.style.transform = "scale(1.05)";
                   }}
                   onMouseLeave={(e) => {
-                    if (selectedAvatar !== avatar) {
+                    if (selectedAvatar !== avatar.id) {
                       e.currentTarget.style.transform = "scale(1)";
                     }
                   }}
                 >
                   <img
-                    src={avatar}
+                    src={avatar.src}
                     alt={`avatar ${index + 1}`}
-                    style={{ 
-                      width: "100%", 
-                      height: "100%", 
+                    style={{
+                      width: "100%",
+                      height: "100%",
                       objectFit: "cover",
-                      display: "block"
+                      display: "block",
                     }}
                   />
                 </div>
@@ -520,7 +513,7 @@ export default function Register() {
 
             <button
               onClick={handleAvatarConfirm}
-              disabled={!selectedAvatar || uploadingAvatar}
+              disabled={!selectedAvatar || loading}
               style={{
                 width: "100%",
                 padding: "12px",
@@ -528,15 +521,15 @@ export default function Register() {
                 borderRadius: "8px",
                 border: "none",
                 backgroundColor:
-                  !selectedAvatar || uploadingAvatar ? "#555" : "rgba(2, 120, 247, 1)",
+                  !selectedAvatar || loading ? "#555" : "rgba(2, 120, 247, 1)",
                 color: "white",
                 fontWeight: "700",
-                cursor: !selectedAvatar || uploadingAvatar ? "not-allowed" : "pointer",
-                opacity: !selectedAvatar || uploadingAvatar ? 0.6 : 1,
+                cursor: !selectedAvatar || loading ? "not-allowed" : "pointer",
+                opacity: !selectedAvatar || loading ? 0.6 : 1,
                 transition: "background-color 0.2s",
               }}
             >
-              {uploadingAvatar ? "⏳ Uploading & Registering..." : "✓ Confirm & Register"}
+              {loading ? "⏳ Registering..." : "✓ Confirm & Register"}
             </button>
           </div>
         </div>

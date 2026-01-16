@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ENDPOINTS from "../config";
 
 interface AuthUser {
     id?: string;
@@ -6,7 +7,7 @@ interface AuthUser {
     fullName?: string;
     email?: string;
     role?: string;
-    avatarURL?: string;
+    imageURL?: string;
     bio?: string;
     created_at?: string;
 }
@@ -27,7 +28,7 @@ const Profile = () => {
         username: user?.username || "",
         fullName: user?.fullName || "",
         bio: user?.bio || "",
-        avatarURL: user?.avatarURL || "",
+        imageURL: user?.imageURL || "",
     });
 
     // State สำหรับ Change Password
@@ -120,7 +121,7 @@ const Profile = () => {
                         }}
                     >
                         <img
-                            src={user.avatarURL || "https://via.placeholder.com/150"}
+                            src={ENDPOINTS.image_url + user.imageURL || "https://via.placeholder.com/150"}
                             alt="avatar"
                             style={{
                                 width: "140px",
@@ -357,8 +358,8 @@ const Profile = () => {
                         </label>
                         <input
                             type="text"
-                            value={editForm.avatarURL}
-                            onChange={(e) => setEditForm({ ...editForm, avatarURL: e.target.value })}
+                            value={editForm.imageURL}
+                            onChange={(e) => setEditForm({ ...editForm, imageURL: e.target.value })}
                             style={{
                                 width: "100%",
                                 padding: "12px",
@@ -397,7 +398,7 @@ const Profile = () => {
                                     username: user.username || "",
                                     fullName: user.fullName || "",
                                     bio: user.bio || "",
-                                    avatarURL: user.avatarURL || "",
+                                    imageURL: user.imageURL || "",
                                 });
                                 setViewMode("profile");
                             }}

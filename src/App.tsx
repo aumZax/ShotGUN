@@ -7,6 +7,7 @@ import Register from "./Pages/Register";
 import Home from "./Pages/Home";
 import Inbox from "./Pages/Inbox";
 import Mytask from "./Pages/Mytask";
+import ENDPOINTS from "./config";
 
 //Preject
 import Project_Detail from "./Pages/Project/Project_Detail";
@@ -16,6 +17,7 @@ import Others_People from "./Pages/Project/Others_People";
 import Project_Assets from "./Pages/Project/Project_Assets";
 import Project_Tasks from "./Pages/Project/Project_Tasks";
 import Project_Sequence from "./Pages/Project/Project_Sequence";
+import Project_Media from "./Pages/Project/Project_Media";
 
 //Others
 import Others_Shot from "./Pages/Project/Others/Others_Shot";
@@ -42,7 +44,9 @@ function MainLayout() {
   // ดึงข้อมูล user จาก localStorage แบบ lazy initialization
   const [authUser] = useState<{
     email: string;
-    avatarURL: string;
+    imageURL: string;
+    
+    
   }>(() => {
     try {
       const raw = localStorage.getItem("authUser");
@@ -50,7 +54,7 @@ function MainLayout() {
         const u = JSON.parse(raw);
         return {
           email: u.email || "Anonymous@gmail.com",
-          avatarURL: u.avatarURL || "/icon/black-dog.png",
+          imageURL: u.imageURL || "/icon/black-dog.png",
         };
       }
     } catch (e) {
@@ -59,11 +63,9 @@ function MainLayout() {
 
     return {
       email: "Anonymous@gmail.com",
-      avatarURL: "/icon/black-dog.png",
+      imageURL: "/icon/black-dog.png",
     };
   });
-
-
 
 
 
@@ -198,7 +200,7 @@ function MainLayout() {
           {/* Profile with Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <img
-              src={authUser.avatarURL}
+              src={ENDPOINTS.image_url + authUser.imageURL}
               className="w-12 h-12 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform duration-300 ring-2 ring-gray-700 hover:ring-blue-500"
               alt="profile"
               onClick={() => setIsOpen(!isOpen)}
@@ -250,7 +252,7 @@ export default function App() {
     <Routes>
       {/* Routes ที่ไม่มี Header */}
       <Route element={<AuthLayout />}>
-        {/* <Route path="/" element={<Login />} /> */}
+        <Route path="/" element={<Login />} />
 
         <Route path="/register" element={<Register />} />
       </Route>
@@ -258,7 +260,7 @@ export default function App() {
       {/* Routes ที่มี Header */}
       <Route element={<MainLayout />}>
         {/* อย่าลืมเอาออก */}
-        <Route path="/" element={<Login />} />
+        {/* <Route path="/" element={<Login />} /> */}
 
 
 
@@ -270,6 +272,7 @@ export default function App() {
         <Route path="/Project_Shot" element={<Project_Shot />} />
         <Route path="/Project_Assets" element={<Project_Assets />} />
         <Route path="/Project_Sequence" element={<Project_Sequence />} />
+         <Route path="/Project_Media" element={<Project_Media />} />
 
         
         <Route path="/Project_Tasks" element={<Project_Tasks />} />

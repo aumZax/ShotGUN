@@ -237,7 +237,7 @@ export default function Navbar_Project({ activeTab = 'ProDetail' }: NavbarProjec
             {/* Right section */}
             <div className="flex items-center gap-3 hidden md:inline-block">
                 <button
-                    className=" px-4 py-2 text-sm text-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105 whitespace-nowrap"
+                    className=" px-4 py-2 text-sm text-gray-200 bg-gradient-to-r from-blue-800 to-blue-700 hover:from-blue-700 hover:to-blue-600 text-white text-sm font-medium rounded-lg flex items-center shadow-lg shadow-blue-500/30 transition-all duration-200 hover:shadow-blue-500/50 hover:scale-105 whitespace-nowrap"
                 >
                     Project Actions
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
